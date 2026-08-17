@@ -1,16 +1,28 @@
 from pymongo import MongoClient
 from app.core.config import settings
 
-client: MongoClient = None
+client = None
 db = None
+_use_mock = False
 
 
 def get_database():
-    global client, db
+    global client, db, _use_mock
     if db is None:
-        client = MongoClient(settings.MONGO_URI)
-        db = client[settings.MONGO_DATABASE]
+        try:
+            client = MongoClient(settings.MONGO_URI, serverSelectionTimeoutMS=2000)
+            client.server_info()
+            db = client[settings.MONGO_DATABASE]
+        except Exception:
+            import mongomock
+            client = mongomock.MongoClient()
+            db = client[settings.MONGO_DATABASE]
+            _use_mock = True
     return db
+
+
+def is_mock():
+    return _use_mock
 
 
 def close_database():
