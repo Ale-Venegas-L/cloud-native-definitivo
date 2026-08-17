@@ -3,7 +3,6 @@
 
 <template>
   <div>
-    <h1>Public View</h1>
-    <router-view />
+    <h1>Admin Panel</h1>
   </div>
 </template>

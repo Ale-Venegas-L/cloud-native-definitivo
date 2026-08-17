@@ -3,7 +3,6 @@
 
 <template>
   <div>
-    <h1>Public View</h1>
-    <router-view />
+    <h2>Modal Book</h2>
   </div>
 </template>
