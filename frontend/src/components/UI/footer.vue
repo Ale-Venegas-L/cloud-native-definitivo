@@ -10,7 +10,7 @@
           <span class="text-ink-3 text-sm">&middot; MVP biblioteca de literatura clásica</span>
         </div>
         <p class="text-sm text-ink-3">
-          
+          2026
         </p>
       </div>
     </div>
