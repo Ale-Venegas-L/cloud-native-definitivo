@@ -72,8 +72,8 @@ Backend
 
 ### Frontend
 
-* HTML5
-* JavaScript
+* Vue 3
+* TypeScript
 * Tailwind CSS
 * Vite
 * Node.js como entorno de desarrollo
@@ -136,19 +136,42 @@ classic-library/
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── css/
-│   │   │   └── main.css
+│   │   ├── App.vue
+│   │   ├── main.ts
+│   │   ├── style.css
 │   │   │
-│   │   └── js/
-│   │       ├── api/
-│   │       ├── components/
+│   │   ├── router/
+│   │   │   └── index.ts
+│   │   │
+│   │   ├── assets/
+│   │   │
+│   │   └── components/
+│   │       ├── composables/
+│   │       │   ├── modal-author.vue
+│   │       │   └── modal-book.vue
+│   │       │
 │   │       ├── pages/
-│   │       └── main.js
+│   │       │   ├── public/
+│   │       │   │   ├── home.vue
+│   │       │   │   └── books.vue
+│   │       │   │
+│   │       │   └── admin/
+│   │       │       ├── panel.vue
+│   │       │       └── stock.vue
+│   │       │
+│   │       ├── UI/
+│   │       │   ├── navbar.vue
+│   │       │   ├── sidebar.vue
+│   │       │   └── footer.vue
+│   │       │
+│   │       └── views/
+│   │           ├── public.vue
+│   │           └── admin.vue
 │   │
 │   ├── index.html
-│   ├── admin.html
 │   ├── package.json
-│   ├── vite.config.js
+│   ├── vite.config.ts
+│   ├── tsconfig.json
 │   └── Dockerfile
 │
 ├── docker-compose.yml
@@ -329,10 +352,10 @@ Instalar dependencias:
 npm install
 ```
 
-Instalar Tailwind:
+Instalar Vue Router:
 
 ```bash
-npm install tailwindcss @tailwindcss/vite
+npm install vue-router
 ```
 
 Ejecutar:
@@ -456,7 +479,7 @@ Pruebas mínimas:
 ```text
 Usuario
    ↓
-Frontend
+Frontend (Vue 3)
    ↓
 HTTP / JSON
    ↓
@@ -470,7 +493,7 @@ FastAPI
    ↓
 JSON
    ↓
-Frontend
+Frontend (Vue 3)
 ```
 
 ## Roadmap
@@ -481,8 +504,8 @@ Configuración inicial.
 
 * Git.
 * FastAPI.
-* Vite.
-* Tailwind.
+* Vue 3 + Vite.
+* Tailwind CSS.
 * MongoDB.
 * Docker.
 
@@ -580,7 +603,7 @@ El contrato REST deberá mantenerse en lo posible para minimizar cambios en el f
 ## Estado del proyecto
 
 ```text
-[ ] Configuración
+[x] Configuración
 [ ] MongoDB
 [ ] API Books
 [ ] API Authors
