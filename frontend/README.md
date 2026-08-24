@@ -76,6 +76,7 @@ Backend
 * TypeScript
 * Tailwind CSS
 * Vite
+* GSAP
 * Node.js como entorno de desarrollo
 
 ### Backend
@@ -140,6 +141,9 @@ classic-library/
 │   │   ├── main.ts
 │   │   ├── style.css
 │   │   │
+│   │   ├── composables/
+│   │   │   └── useScrollReveal.ts
+│   │   │
 │   │   ├── router/
 │   │   │   └── index.ts
 │   │   │
@@ -160,6 +164,11 @@ classic-library/
 │   │       │       └── stock.vue
 │   │       │
 │   │       ├── UI/
+│   │       │   ├── BaseBadge.vue
+│   │       │   ├── BaseButton.vue
+│   │       │   ├── BaseCard.vue
+│   │       │   ├── BaseInput.vue
+│   │       │   ├── BaseModal.vue
 │   │       │   ├── navbar.vue
 │   │       │   ├── sidebar.vue
 │   │       │   └── footer.vue
@@ -172,10 +181,11 @@ classic-library/
 │   ├── package.json
 │   ├── vite.config.ts
 │   ├── tsconfig.json
+│   ├── tsconfig.app.json
+│   ├── tsconfig.node.json
 │   └── Dockerfile
 │
 ├── docker-compose.yml
-├── .env
 ├── .env.example
 ├── .gitignore
 └── README.md
@@ -306,18 +316,7 @@ source .venv/bin/activate
 Instalar dependencias:
 
 ```bash
-pip install "fastapi[standard]"
-pip install pymongo
-pip install pydantic-settings
-pip install python-dotenv
-pip install pytest
-pip install httpx
-```
-
-Guardar dependencias:
-
-```bash
-pip freeze > requirements.txt
+pip install -r requirements.txt
 ```
 
 Ejecutar:
@@ -350,12 +349,6 @@ Instalar dependencias:
 
 ```bash
 npm install
-```
-
-Instalar Vue Router:
-
-```bash
-npm install vue-router
 ```
 
 Ejecutar:
@@ -604,17 +597,17 @@ El contrato REST deberá mantenerse en lo posible para minimizar cambios en el f
 
 ```text
 [x] Configuración
-[ ] MongoDB
-[ ] API Books
-[ ] API Authors
-[ ] Catálogo público
-[ ] Modal Authors
-[ ] Admin
-[ ] CRUD completo
-[ ] CORS
-[ ] Docker
+[x] MongoDB
+[x] API Books
+[x] API Authors
+[x] Catálogo público
+[x] Modal Authors
+[x] Admin
+[x] CRUD completo
+[x] CORS
+[x] Docker
 [ ] Testing
-[ ] Documentación
+[x] Documentación
 ```
 
 ## Licencia
