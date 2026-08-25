@@ -1,143 +1,78 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { useScrollReveal } from '../../../composables/useScrollReveal'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import BookArtwork from '../../UI/BookArtwork.vue'
+import ContentState from '../../UI/ContentState.vue'
+import ModalBook from '../../composables/modal-book.vue'
+import { apiRequest } from '../../../services/api'
+import type { Author, Book } from '../../../types/domain'
 
-useScrollReveal('.book-reveal')
-
-const books = ref<any[]>([])
-const authors = ref<any[]>([])
-const search = ref('')
-const filterAuthor = ref('')
-const filterCountry = ref('')
-const filterGenre = ref('')
-
-const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
-
-const countries = computed(() => [...new Set(books.value.map(b => b.country))])
-const genres = computed(() => [...new Set(books.value.map(b => b.genre))])
-
+const books = ref<Book[]>([]), authors = ref<Author[]>([])
+const search = ref(''), filterAuthor = ref(''), filterCountry = ref(''), filterGenre = ref('')
+const sortBy = ref('title-asc'), filtersOpen = ref(false), loading = ref(true), error = ref('')
+const selectedBook = ref<Book | null>(null)
+const route = useRoute()
+const countries = computed(() => [...new Set(books.value.map(b => b.country))].sort())
+const genres = computed(() => [...new Set(books.value.map(b => b.genre))].sort())
+const activeFilters = computed(() => [
+  search.value && { key: 'search', label: `“${search.value}”` },
+  filterAuthor.value && { key: 'author', label: authors.value.find(a => a.id === filterAuthor.value)?.name || 'Autor' },
+  filterCountry.value && { key: 'country', label: filterCountry.value },
+  filterGenre.value && { key: 'genre', label: filterGenre.value }
+].filter(Boolean) as { key: string; label: string }[])
 const filteredBooks = computed(() => {
-  return books.value.filter(book => {
-    const matchSearch = !search.value || book.title.toLowerCase().includes(search.value.toLowerCase())
-    const matchAuthor = !filterAuthor.value || book.author_id === filterAuthor.value
-    const matchCountry = !filterCountry.value || book.country === filterCountry.value
-    const matchGenre = !filterGenre.value || book.genre === filterGenre.value
-    return matchSearch && matchAuthor && matchCountry && matchGenre
+  const result = books.value.filter(book => {
+    const query = search.value.trim().toLocaleLowerCase('es')
+    const author = authors.value.find(a => a.id === book.author_id)?.name || ''
+    return (!query || `${book.title} ${author}`.toLocaleLowerCase('es').includes(query)) && (!filterAuthor.value || book.author_id === filterAuthor.value) && (!filterCountry.value || book.country === filterCountry.value) && (!filterGenre.value || book.genre === filterGenre.value)
   })
+  return result.sort((a, b) => sortBy.value === 'year-desc' ? b.publication_year - a.publication_year : sortBy.value === 'year-asc' ? a.publication_year - b.publication_year : sortBy.value === 'title-desc' ? b.title.localeCompare(a.title, 'es') : a.title.localeCompare(b.title, 'es'))
 })
-
-function getAuthorName(authorId: string): string {
-  const author = authors.value.find(a => a.id === authorId)
-  return author?.name || 'Desconocido'
+function authorName(id: string) { return authors.value.find(a => a.id === id)?.name || 'Desconocido' }
+function clearFilter(key?: string) {
+  if (!key || key === 'search') search.value = ''
+  if (!key || key === 'author') filterAuthor.value = ''
+  if (!key || key === 'country') filterCountry.value = ''
+  if (!key || key === 'genre') filterGenre.value = ''
 }
-
-onMounted(async () => {
+async function loadData() {
+  loading.value = true; error.value = ''
   try {
-    const [booksRes, authorsRes] = await Promise.all([
-      fetch(`${apiBase}/books`),
-      fetch(`${apiBase}/authors`)
-    ])
-    books.value = await booksRes.json()
-    authors.value = await authorsRes.json()
-  } catch (e) {
-    console.error('Error cargando datos:', e)
+    [books.value, authors.value] = await Promise.all([apiRequest<Book[]>('/books/'), apiRequest<Author[]>('/authors/')])
+    const requestedAuthor = typeof route.query.author === 'string' ? route.query.author : ''
+    if (authors.value.some(author => author.id === requestedAuthor)) filterAuthor.value = requestedAuthor
   }
-})
+  catch (e) { error.value = e instanceof Error ? e.message : 'No fue posible cargar el catálogo' }
+  finally { loading.value = false }
+}
+onMounted(loadData)
 </script>
 
 <template>
-  <div class="max-w-6xl mx-auto px-5 py-xl">
-    <div class="mb-10">
-      <h1 class="text-3xl md:text-4xl mb-2">Catálogo</h1>
-      <p class="text-ink-2">Explora nuestra colección de obras clásicas.</p>
-    </div>
+  <main class="section-space"><div class="page-shell">
+    <div class="mb-10 max-w-2xl"><p class="mb-2 text-xs font-semibold uppercase tracking-[.16em] text-accent">Colección completa</p><h1 class="text-4xl sm:text-5xl">Catálogo</h1><p class="mt-3 text-ink-2">Busca por obra o autor y recorre la colección por país, género o época.</p></div>
 
-    <!-- Filters -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-8">
-      <input
-        v-model="search"
-        type="text"
-        placeholder="Buscar por título..."
-        class="px-4 py-2.5 bg-paper-2 border border-rule rounded-[var(--radius-md)]
-               text-ink placeholder:text-ink-3 text-sm
-               focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20
-               transition-all duration-[var(--dur-short)]"
-      >
-      <select
-        v-model="filterAuthor"
-        class="px-4 py-2.5 bg-paper-2 border border-rule rounded-[var(--radius-md)]
-               text-ink text-sm appearance-none
-               focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20
-               transition-all duration-[var(--dur-short)]"
-      >
-        <option value="">Todos los autores</option>
-        <option v-for="author in authors" :key="author.id" :value="author.id">{{ author.name }}</option>
-      </select>
-      <select
-        v-model="filterCountry"
-        class="px-4 py-2.5 bg-paper-2 border border-rule rounded-[var(--radius-md)]
-               text-ink text-sm appearance-none
-               focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20
-               transition-all duration-[var(--dur-short)]"
-      >
-        <option value="">Todos los países</option>
-        <option v-for="country in countries" :key="country" :value="country">{{ country }}</option>
-      </select>
-      <select
-        v-model="filterGenre"
-        class="px-4 py-2.5 bg-paper-2 border border-rule rounded-[var(--radius-md)]
-               text-ink text-sm appearance-none
-               focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20
-               transition-all duration-[var(--dur-short)]"
-      >
-        <option value="">Todos los géneros</option>
-        <option v-for="genre in genres" :key="genre" :value="genre">{{ genre }}</option>
-      </select>
-    </div>
-
-    <!-- Results count -->
-    <p class="text-sm text-ink-3 mb-5">
-      {{ filteredBooks.length }} libro{{ filteredBooks.length !== 1 ? 's' : '' }}
-    </p>
-
-    <!-- Books grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-      <div
-        v-for="book in filteredBooks"
-        :key="book.id"
-        class="book-reveal group p-5 bg-paper-2 border border-rule rounded-[var(--radius-lg)]
-               hover:shadow-[var(--shadow-card)] hover:border-accent/30
-               transition-all duration-[var(--dur-short)] ease-[var(--ease-out)]"
-      >
-        <div class="flex items-start justify-between mb-3">
-          <span class="text-xs font-[var(--font-mono)] text-ink-3 tracking-wide uppercase">
-            {{ book.genre }}
-          </span>
-          <span class="text-xs font-[var(--font-mono)] text-accent">
-            {{ book.publication_year }}
-          </span>
-        </div>
-        <h3 class="text-lg group-hover:text-accent transition-colors mb-1">
-          {{ book.title }}
-        </h3>
-        <p class="text-sm text-ink-2 mb-3">{{ getAuthorName(book.author_id) }}</p>
-        <div class="flex items-center justify-between">
-          <span class="text-xs text-ink-3">{{ book.country }}</span>
-          <span
-            v-if="book.cover_url"
-            class="w-8 h-10 bg-paper-3 rounded-sm flex items-center justify-center text-ink-3"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
-          </span>
-        </div>
+    <div class="mb-6 rounded-xl border border-rule bg-paper-2/45 p-3 sm:p-4">
+      <div class="flex gap-2">
+        <label class="relative flex-1"><span class="sr-only">Buscar libros</span><svg class="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input v-model="search" type="search" placeholder="Buscar título o autor…" class="min-h-12 w-full rounded-md border border-rule bg-paper py-2 pl-11 pr-4 text-sm text-ink placeholder:text-ink-3 focus:border-accent focus:outline-none" /></label>
+        <button type="button" class="inline-flex min-h-12 items-center gap-2 rounded-md border border-rule bg-paper px-4 text-sm font-medium text-ink md:hidden" :aria-expanded="filtersOpen" @click="filtersOpen = !filtersOpen">Filtros <span v-if="activeFilters.length" class="rounded-full bg-accent px-1.5 py-0.5 text-xs text-paper">{{ activeFilters.length }}</span></button>
+      </div>
+      <div :class="['mt-3 grid gap-3 md:grid md:grid-cols-4', filtersOpen ? 'grid' : 'hidden']">
+        <select v-model="filterAuthor" class="min-h-11 rounded-md border border-rule bg-paper px-3 text-sm text-ink"><option value="">Todos los autores</option><option v-for="author in authors" :key="author.id" :value="author.id">{{ author.name }}</option></select>
+        <select v-model="filterCountry" class="min-h-11 rounded-md border border-rule bg-paper px-3 text-sm text-ink"><option value="">Todos los países</option><option v-for="country in countries" :key="country">{{ country }}</option></select>
+        <select v-model="filterGenre" class="min-h-11 rounded-md border border-rule bg-paper px-3 text-sm text-ink"><option value="">Todos los géneros</option><option v-for="genre in genres" :key="genre">{{ genre }}</option></select>
+        <select v-model="sortBy" class="min-h-11 rounded-md border border-rule bg-paper px-3 text-sm text-ink" aria-label="Ordenar resultados"><option value="title-asc">Título: A–Z</option><option value="title-desc">Título: Z–A</option><option value="year-desc">Más recientes</option><option value="year-asc">Más antiguos</option></select>
       </div>
     </div>
 
-    <!-- Empty state -->
-    <div v-if="filteredBooks.length === 0 && books.length > 0" class="text-center py-16">
-      <p class="text-ink-3 text-lg">No se encontraron libros con esos filtros.</p>
+    <div class="mb-7 flex min-h-8 flex-wrap items-center gap-2"><p class="mr-auto text-sm text-ink-3"><strong class="font-medium text-ink">{{ filteredBooks.length }}</strong> resultado{{ filteredBooks.length === 1 ? '' : 's' }}</p><button v-for="filter in activeFilters" :key="filter.key" type="button" class="inline-flex min-h-8 items-center gap-1 rounded-full bg-accent/10 px-3 text-xs font-medium text-accent" :aria-label="`Quitar filtro ${filter.label}`" @click="clearFilter(filter.key)">{{ filter.label }} <span aria-hidden="true">×</span></button><button v-if="activeFilters.length > 1" type="button" class="min-h-8 px-2 text-xs text-ink-3 underline hover:text-ink" @click="clearFilter()">Limpiar todo</button></div>
+
+    <ContentState v-if="error" title="El catálogo no está disponible" :description="error" tone="error" retryable @retry="loadData" />
+    <div v-else-if="loading" class="grid grid-cols-2 gap-x-4 gap-y-9 sm:grid-cols-3 lg:grid-cols-4"><div v-for="n in 8" :key="n"><div class="skeleton aspect-[3/4.35] rounded-lg"/><div class="skeleton mt-4 h-5 w-4/5 rounded"/><div class="skeleton mt-2 h-3 w-1/2 rounded"/></div></div>
+    <ContentState v-else-if="filteredBooks.length === 0" title="No encontramos coincidencias" description="Prueba quitando uno de los filtros o utiliza otra búsqueda." />
+    <div v-else class="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4">
+      <article v-for="book in filteredBooks" :key="book.id" class="group min-w-0"><button type="button" class="block w-full text-left" @click="selectedBook = book"><BookArtwork :book="book" sizes="(max-width: 640px) 44vw, (max-width: 1024px) 30vw, 260px"/><div class="mt-4 flex items-start justify-between gap-2"><div class="min-w-0"><p class="mb-1 font-[var(--font-mono)] text-[.65rem] uppercase tracking-wider text-accent">{{ book.genre }} · {{ book.publication_year }}</p><h2 class="line-clamp-2 text-lg leading-tight transition-colors group-hover:text-accent sm:text-xl">{{ book.title }}</h2><p class="mt-1 truncate text-sm text-ink-3">{{ authorName(book.author_id) }}</p></div><span class="mt-5 hidden text-ink-3 transition-transform group-hover:translate-x-1 sm:block" aria-hidden="true">→</span></div><span class="mt-3 inline-flex min-h-9 items-center text-xs font-medium text-accent sm:hidden">Ver detalles →</span></button></article>
     </div>
-  </div>
+    <ModalBook :open="Boolean(selectedBook)" :book="selectedBook" :authors="authors" @close="selectedBook = null" />
+  </div></main>
 </template>

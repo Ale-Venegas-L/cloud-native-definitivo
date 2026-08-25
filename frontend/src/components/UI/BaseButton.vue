@@ -16,7 +16,7 @@ const props = withDefaults(defineProps<Props>(), {
 const variantClasses: Record<string, string> = {
   primary: 'bg-ink text-paper hover:bg-ink/90 active:bg-ink/80',
   secondary: 'bg-transparent text-ink border border-rule hover:bg-paper-2 active:bg-paper-3',
-  danger: 'bg-danger text-white hover:opacity-90 active:opacity-80',
+  danger: 'bg-danger text-[#E3D5C1] hover:opacity-90 active:opacity-80',
   ghost: 'bg-transparent text-ink-2 hover:bg-paper-2 active:bg-paper-3'
 }
 
@@ -30,14 +30,15 @@ const sizeClasses: Record<string, string> = {
 <template>
   <button
     :class="[
-      'inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] font-medium',
-      'transition-all duration-[var(--dur-short)] ease-[var(--ease-out)]',
+      'inline-flex min-h-11 items-center justify-center gap-2 rounded-[var(--radius-md)] font-medium',
+      'transition-[transform,opacity] duration-[var(--dur-short)] ease-[var(--ease-out)]',
       'focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-focus',
       'disabled:opacity-40 disabled:pointer-events-none',
       variantClasses[props.variant],
       sizeClasses[props.size]
     ]"
     :disabled="disabled || loading"
+    :aria-busy="loading"
   >
     <svg v-if="loading" class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />

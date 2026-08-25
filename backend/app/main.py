@@ -5,6 +5,7 @@ from app.core.config import settings
 from app.core.database import get_database, close_database, is_mock
 from app.modules.books.router import router as books_router
 from app.modules.authors.router import router as authors_router
+from app.modules.auth.router import router as auth_router
 from app.shared.seed import seed_data
 
 
@@ -29,18 +30,20 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        settings.FRONTEND_URL
+        settings.FRONTEND_URL,
+        "http://127.0.0.1:5173"
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(books_router)
-app.include_router(authors_router)
+app.include_router(books_router, prefix=settings.API_V1_PREFIX)
+app.include_router(authors_router, prefix=settings.API_V1_PREFIX)
+app.include_router(auth_router, prefix=settings.API_V1_PREFIX)
 
 
-@app.get("/api/health")
+@app.get(f"{settings.API_V1_PREFIX}/health", tags=["health"])
 async def health():
     return {
         "status": "ok",

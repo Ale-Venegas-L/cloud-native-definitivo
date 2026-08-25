@@ -26,7 +26,7 @@ const paddingClasses: Record<string, string> = {
 <template>
   <div
     :class="[
-      'rounded-[var(--radius-lg)] transition-all duration-[var(--dur-short)] ease-[var(--ease-out)]',
+      'rounded-[var(--radius-lg)]',
       variantClasses[props.variant],
       paddingClasses[props.padding]
     ]"

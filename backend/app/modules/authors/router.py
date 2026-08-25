@@ -1,10 +1,12 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from typing import List
 from app.modules.authors.schemas import AuthorCreate, AuthorUpdate, AuthorResponse
 from app.modules.authors import service
 from app.modules.books.schemas import BookResponse
+from app.modules.auth.dependencies import require_admin
+from app.modules.auth.schemas import AuthenticatedUser
 
-router = APIRouter(prefix="/api/authors", tags=["authors"])
+router = APIRouter(prefix="/authors", tags=["authors"])
 
 
 @router.get("/", response_model=List[AuthorResponse])
@@ -21,12 +23,19 @@ def get_author(author_id: str):
 
 
 @router.post("/", response_model=AuthorResponse, status_code=201)
-def create_author(author: AuthorCreate):
+def create_author(
+    author: AuthorCreate,
+    _: AuthenticatedUser = Depends(require_admin),
+):
     return service.create_author(author)
 
 
 @router.put("/{author_id}", response_model=AuthorResponse)
-def update_author(author_id: str, author: AuthorUpdate):
+def update_author(
+    author_id: str,
+    author: AuthorUpdate,
+    _: AuthenticatedUser = Depends(require_admin),
+):
     updated = service.update_author(author_id, author)
     if not updated:
         raise HTTPException(status_code=404, detail="Author not found")
@@ -34,7 +43,10 @@ def update_author(author_id: str, author: AuthorUpdate):
 
 
 @router.delete("/{author_id}", status_code=204)
-def delete_author(author_id: str):
+def delete_author(
+    author_id: str,
+    _: AuthenticatedUser = Depends(require_admin),
+):
     deleted = service.delete_author(author_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Author not found")
