@@ -6,18 +6,46 @@
    ═══════════════════════════════════════════════════════════ */
 
 :root {
-  /* ── Palette ──────────────────────────────────────────── */
-  --color-paper:    oklch(97% 0.008 80);
-  --color-paper-2:  oklch(94% 0.010 80);
-  --color-paper-3:  oklch(90% 0.012 75);
-  --color-ink:      oklch(18% 0.010 60);
-  --color-ink-2:    oklch(35% 0.008 70);
-  --color-ink-3:    oklch(55% 0.006 70);
-  --color-rule:     oklch(82% 0.008 80);
-  --color-accent:   oklch(55% 0.19 55);
-  --color-accent-2: oklch(50% 0.16 55);
-  --color-focus:    oklch(55% 0.19 55);
-  --color-danger:   oklch(55% 0.18 25);
+  /* ── Brand palette ───────────────────────────────────── */
+  --color-1: #E3D5C1;
+  --color-2: #8D806F;
+  --color-3: #14151A;
+  --color-4: #AFB2B4;
+  --color-5: #8A634A;
+  --color-night: #6C4A3C;
+
+  /* ── Semantic theme palette ─────────────────────────────
+     These internal names deliberately differ from Tailwind's
+     --color-* namespace. Reusing the same name on both sides of
+     @theme produced circular declarations in the compiled CSS. */
+  --theme-paper:    var(--color-1);
+  --theme-paper-2:  color-mix(in srgb, var(--color-1) 88%, var(--color-4) 12%);
+  --theme-paper-3:  color-mix(in srgb, var(--color-1) 72%, var(--color-4) 28%);
+  --theme-ink:      var(--color-3);
+  --theme-ink-2:    color-mix(in srgb, var(--color-3) 74%, var(--color-2) 26%);
+  --theme-ink-3:    color-mix(in srgb, var(--color-3) 55%, var(--color-2) 45%);
+  --theme-rule:     var(--color-2);
+  --theme-accent:   oklch(55% 0.19 55);
+  --theme-accent-2: oklch(50% 0.16 55);
+  --theme-focus:    oklch(55% 0.19 55);
+  --theme-danger:   oklch(55% 0.18 25);
+  --theme-backdrop: rgb(20 21 26 / 0.46);
+
+  /* ── Collection index ────────────────────────────────── */
+  --stats-bg:           color-mix(in srgb, var(--color-1) 86%, var(--color-5) 14%);
+  --stats-bg-accent:    rgb(138 99 74 / 0.16);
+  --stats-ink:          var(--color-3);
+  --stats-muted:        color-mix(in srgb, var(--color-3) 62%, var(--color-2) 38%);
+  --stats-rule:         rgb(20 21 26 / 0.18);
+  --stats-grid:         rgb(20 21 26 / 0.035);
+  --stats-volume-1:     color-mix(in srgb, var(--color-1) 68%, var(--color-5) 32%);
+  --stats-volume-1-ink: var(--color-3);
+  --stats-volume-2:     color-mix(in srgb, var(--color-1) 62%, var(--color-2) 38%);
+  --stats-volume-2-ink: var(--color-3);
+  --stats-volume-3:     color-mix(in srgb, var(--color-1) 92%, white 8%);
+  --stats-volume-3-ink: var(--color-3);
+  --stats-shelf:        var(--color-5);
+  --stats-shadow:       rgb(20 21 26 / 0.15);
 
   /* ── Typography ───────────────────────────────────────── */
   --font-display: "Instrument Serif", "Georgia", serif;
@@ -62,8 +90,8 @@
   --z-sticky:   200;
   --z-modal:    400;
   --z-toast:    500;
-  --shadow-whisper: 0 1px 2px oklch(20% 0.01 80 / 0.05);
-  --shadow-card:    0 2px 8px oklch(20% 0.01 80 / 0.08);
+  --shadow-whisper: 0 1px 2px rgb(20 21 26 / 0.08);
+  --shadow-card:    0 2px 8px rgb(20 21 26 / 0.12);
 
   /* ── Radius ───────────────────────────────────────────── */
   --radius-sm: 0.375rem;
@@ -73,20 +101,63 @@
 }
 
 /* ── Dark mode ──────────────────────────────────────────── */
+:root[data-theme="dark"] {
+    --theme-paper:    var(--color-night);
+    --theme-paper-2:  color-mix(in srgb, var(--color-night) 88%, var(--color-3) 12%);
+    --theme-paper-3:  color-mix(in srgb, var(--color-night) 74%, var(--color-3) 26%);
+    --theme-ink:      var(--color-1);
+    --theme-ink-2:    color-mix(in srgb, var(--color-1) 88%, var(--color-4) 12%);
+    --theme-ink-3:    color-mix(in srgb, var(--color-1) 80%, var(--color-2) 20%);
+    --theme-rule:     color-mix(in srgb, var(--color-1) 38%, var(--color-night) 62%);
+    --theme-accent:   oklch(85% 0.11 55);
+    --theme-accent-2: oklch(90% 0.08 55);
+    --theme-focus:    oklch(85% 0.11 55);
+    --theme-danger:   oklch(82% 0.1 25);
+    --shadow-whisper: 0 1px 2px rgb(20 21 26 / 0.28);
+    --shadow-card:    0 2px 8px rgb(20 21 26 / 0.4);
+    --stats-bg:           var(--color-night);
+    --stats-bg-accent:    rgb(138 99 74 / 0.18);
+    --stats-ink:          var(--color-1);
+    --stats-muted:        var(--theme-ink-3);
+    --stats-rule:         rgb(227 213 193 / 0.16);
+    --stats-grid:         rgb(227 213 193 / 0.018);
+    --stats-volume-1:     color-mix(in srgb, var(--color-night) 80%, var(--color-5) 20%);
+    --stats-volume-1-ink: var(--color-1);
+    --stats-volume-2:     color-mix(in srgb, var(--color-night) 80%, var(--color-2) 20%);
+    --stats-volume-2-ink: var(--color-1);
+    --stats-volume-3:     var(--color-1);
+    --stats-volume-3-ink: var(--color-3);
+    --stats-shelf:        var(--color-5);
+    --stats-shadow:       rgb(0 0 0 / 0.3);
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
-    --color-paper:    oklch(15% 0.008 40);
-    --color-paper-2:  oklch(20% 0.010 40);
-    --color-paper-3:  oklch(25% 0.010 40);
-    --color-ink:      oklch(94% 0.006 80);
-    --color-ink-2:    oklch(78% 0.006 70);
-    --color-ink-3:    oklch(60% 0.006 70);
-    --color-rule:     oklch(30% 0.008 40);
-    --color-accent:   oklch(65% 0.17 55);
-    --color-accent-2: oklch(60% 0.14 55);
-    --color-danger:   oklch(65% 0.16 25);
-    --shadow-whisper: 0 1px 2px oklch(5% 0.01 40 / 0.2);
-    --shadow-card:    0 2px 8px oklch(5% 0.01 40 / 0.3);
+  :root:not([data-theme]) {
+    --theme-paper:    var(--color-night);
+    --theme-paper-2:  color-mix(in srgb, var(--color-night) 88%, var(--color-3) 12%);
+    --theme-paper-3:  color-mix(in srgb, var(--color-night) 74%, var(--color-3) 26%);
+    --theme-ink:      var(--color-1);
+    --theme-ink-2:    color-mix(in srgb, var(--color-1) 88%, var(--color-4) 12%);
+    --theme-ink-3:    color-mix(in srgb, var(--color-1) 80%, var(--color-2) 20%);
+    --theme-rule:     color-mix(in srgb, var(--color-1) 38%, var(--color-night) 62%);
+    --theme-accent:   oklch(85% 0.11 55);
+    --theme-accent-2: oklch(90% 0.08 55);
+    --theme-focus:    oklch(85% 0.11 55);
+    --theme-danger:   oklch(82% 0.1 25);
+    --stats-bg:           var(--color-night);
+    --stats-bg-accent:    rgb(138 99 74 / 0.18);
+    --stats-ink:          var(--color-1);
+    --stats-muted:        var(--theme-ink-3);
+    --stats-rule:         rgb(227 213 193 / 0.16);
+    --stats-grid:         rgb(227 213 193 / 0.018);
+    --stats-volume-1:     color-mix(in srgb, var(--color-night) 80%, var(--color-5) 20%);
+    --stats-volume-1-ink: var(--color-1);
+    --stats-volume-2:     color-mix(in srgb, var(--color-night) 80%, var(--color-2) 20%);
+    --stats-volume-2-ink: var(--color-1);
+    --stats-volume-3:     var(--color-1);
+    --stats-volume-3-ink: var(--color-3);
+    --stats-shelf:        var(--color-5);
+    --stats-shadow:       rgb(0 0 0 / 0.3);
   }
 }
 
@@ -95,17 +166,18 @@
    ═══════════════════════════════════════════════════════════ */
 
 @theme {
-  --color-paper:     var(--color-paper);
-  --color-paper-2:   var(--color-paper-2);
-  --color-paper-3:   var(--color-paper-3);
-  --color-ink:       var(--color-ink);
-  --color-ink-2:     var(--color-ink-2);
-  --color-ink-3:     var(--color-ink-3);
-  --color-rule:      var(--color-rule);
-  --color-accent:    var(--color-accent);
-  --color-accent-2:  var(--color-accent-2);
-  --color-focus:     var(--color-focus);
-  --color-danger:    var(--color-danger);
+  --color-paper:     var(--theme-paper);
+  --color-paper-2:   var(--theme-paper-2);
+  --color-paper-3:   var(--theme-paper-3);
+  --color-ink:       var(--theme-ink);
+  --color-ink-2:     var(--theme-ink-2);
+  --color-ink-3:     var(--theme-ink-3);
+  --color-rule:      var(--theme-rule);
+  --color-accent:    var(--theme-accent);
+  --color-accent-2:  var(--theme-accent-2);
+  --color-focus:     var(--theme-focus);
+  --color-danger:    var(--theme-danger);
+  --color-backdrop:  var(--theme-backdrop);
 
   --font-display: var(--font-display);
   --font-body:    var(--font-body);
@@ -119,10 +191,21 @@
 html {
   overflow-x: clip;
   scroll-behavior: smooth;
+  overscroll-behavior-y: none;
+  background: var(--color-paper);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 body {
   overflow-x: clip;
+  overscroll-behavior-y: none;
   background: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-body);
@@ -131,6 +214,37 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+#app {
+  min-height: 100%;
+}
+
+button, input, select, textarea { font: inherit; }
+button, a, select { -webkit-tap-highlight-color: transparent; }
+
+.page-shell {
+  width: min(100% - 2rem, 72rem);
+  margin-inline: auto;
+}
+
+.section-space { padding-block: clamp(3rem, 7vw, 6rem); }
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-paper-3);
+}
+
+.skeleton::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in oklch, var(--color-paper) 65%, transparent), transparent);
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer { to { transform: translateX(100%); } }
 
 /* ── Typography ─────────────────────────────────────────── */
 h1, h2, h3, h4, h5, h6 {
@@ -152,13 +266,8 @@ p {
 }
 
 a {
-  color: var(--color-accent);
   text-decoration: none;
   transition: color var(--dur-short) var(--ease-out);
-}
-
-a:hover {
-  color: var(--color-accent-2);
 }
 
 /* ── Focus ──────────────────────────────────────────────── */
@@ -195,26 +304,13 @@ a:hover {
   }
 }
 
+@media (max-width: 639px) {
+  h1 { overflow-wrap: anywhere; }
+  .page-shell { width: min(100% - 1.5rem, 72rem); }
+}
+
 /* ── Selection ──────────────────────────────────────────── */
 ::selection {
   background: oklch(55% 0.19 55 / 0.2);
   color: var(--color-ink);
-}
-
-/* ── Scrollbar ──────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--color-paper-2);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--color-rule);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-ink-3);
 }

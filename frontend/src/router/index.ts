@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { authState, initializeAuth } from '../composables/useAuth'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -16,12 +17,28 @@ const router = createRouter({
           path: 'books',
           name: 'books',
           component: () => import('../components/pages/public/books.vue')
+        },
+        {
+          path: 'editions',
+          name: 'editions',
+          component: () => import('../components/pages/public/editions.vue')
         }
       ]
     },
     {
+      path: '/login',
+      name: 'login',
+      component: () => import('../components/pages/auth/login.vue')
+    },
+    {
+      path: '/unauthorized',
+      name: 'unauthorized',
+      component: () => import('../components/pages/auth/unauthorized.vue')
+    },
+    {
       path: '/admin',
       component: () => import('../components/views/admin.vue'),
+      meta: { requiresAdmin: true },
       children: [
         {
           path: '',
@@ -36,6 +53,22 @@ const router = createRouter({
       ]
     }
   ]
+})
+
+router.beforeEach(async (to) => {
+  await initializeAuth()
+
+  if (!to.meta.requiresAdmin) return true
+
+  if (!authState.user) {
+    return { name: 'login', query: { redirect: to.fullPath } }
+  }
+
+  if (!authState.isAdmin) {
+    return { name: 'unauthorized' }
+  }
+
+  return true
 })
 
 export default router

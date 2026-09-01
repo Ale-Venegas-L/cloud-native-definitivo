@@ -1,15 +1,7 @@
 <script setup lang="ts">
 import BaseModal from '../UI/BaseModal.vue'
 import BaseButton from '../UI/BaseButton.vue'
-
-interface Author {
-  name: string
-  country: string
-  birth_year: number
-  death_year?: number
-  biography?: string
-  image_url?: string
-}
+import type { Author } from '../../types/domain'
 
 defineProps<{
   open: boolean

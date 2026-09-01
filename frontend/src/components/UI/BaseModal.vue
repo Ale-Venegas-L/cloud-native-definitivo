@@ -64,22 +64,23 @@ function onKeydown(e: KeyboardEvent) {
   <dialog
     ref="dialogEl"
     :class="[
-      'rounded-[var(--radius-xl)] p-0 bg-transparent backdrop:bg-ink/40',
-      'backdrop:transition-opacity backdrop:duration-[var(--dur-long)]',
+      'rounded-[var(--radius-xl)] p-0 bg-transparent backdrop:bg-backdrop',
       maxWidthClasses[maxWidth],
-      'w-full'
+      'w-[calc(100%-1.5rem)] max-h-[calc(100dvh-1.5rem)]'
     ]"
     @click="onBackdropClick"
     @keydown="onKeydown"
   >
     <div
       v-if="open"
-      class="bg-paper rounded-[var(--radius-xl)] shadow-[var(--shadow-card)] overflow-hidden
+      class="bg-paper rounded-[var(--radius-xl)] shadow-[var(--shadow-card)] overflow-y-auto max-h-[calc(100dvh-1.5rem)]
              animate-[modalIn_var(--dur-long)_var(--ease-out)]"
     >
       <div v-if="title" class="flex items-center justify-between px-6 py-4 border-b border-rule">
         <h3 class="text-xl font-[var(--font-display)] text-ink">{{ title }}</h3>
         <button
+          type="button"
+          aria-label="Cerrar ventana"
           class="p-1.5 rounded-[var(--radius-sm)] text-ink-3 hover:text-ink hover:bg-paper-2
                  transition-colors duration-[var(--dur-short)]"
           @click="emit('close')"
