@@ -14,8 +14,9 @@ class Settings(BaseSettings):
 
     FRONTEND_URL: str = "http://localhost:5173"
 
-    FIREBASE_PROJECT_ID: str = "colud-native"
-    FIREBASE_CHECK_REVOKED: bool = False
+    COGNITO_REGION: str = "us-east-1"
+    COGNITO_USER_POOL_ID: str = ""
+    COGNITO_APP_CLIENT_ID: str = ""
 
     model_config = {"env_file": ".env"}
 

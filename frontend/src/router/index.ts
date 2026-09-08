@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { authState, initializeAuth } from '../composables/useAuth'
+import { authState, initializeAuth, handleCallback } from '../composables/useAuth'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -24,6 +24,11 @@ const router = createRouter({
           component: () => import('../components/pages/public/editions.vue')
         }
       ]
+    },
+    {
+      path: '/callback',
+      name: 'callback',
+      component: () => import('../components/pages/auth/callback.vue')
     },
     {
       path: '/login',

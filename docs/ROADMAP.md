@@ -4,16 +4,18 @@
 
 Status: in progress
 
-- [x] Register the Firebase Web application in `colud-native`.
-- [x] Add Google Sign-In configuration as code.
 - [x] Introduce the `/api/v1` contract.
 - [x] Add the modular FastAPI authentication boundary.
 - [x] Protect all write operations with the admin role.
 - [x] Add Vue session state, route guards and authenticated API client.
 - [x] Add baseline authorization tests.
-- [x] Deploy the Firebase Authentication provider configuration.
-- [x] Assign the initial administrator claim to `vice.vasquez@duocuc.cl`.
-- [ ] Complete a real browser login smoke test.
+- [x] Migrate from Firebase Authentication to AWS Cognito (ADR-002).
+- [x] Implement OAuth 2.0 Authorization Code + PKCE flow.
+- [x] Backend JWT verification via Cognito JWKS endpoint.
+- [x] Pre Token Generation Lambda for custom claims.
+- [ ] Configure Cognito User Pool and App Client in AWS Console.
+- [ ] Configure API Gateway REST API with JWT Authorizer.
+- [ ] Complete a real browser login smoke test with Cognito.
 
 ## Hito 1.5 - Experiencia de interfaz
 
@@ -46,8 +48,13 @@ Status: complete
 
 ## Hito 4 - AWS API Gateway
 
-- Select REST API plus Lambda Authorizer or HTTP API plus JWT Authorizer via ADR.
-- Validate Firebase issuer, audience, signature and expiry at the edge.
-- Add throttling, request validation, CORS, logs and metrics.
-- Connect API Gateway to the private backend integration.
-- Add WAF using the architecture selected in the ADR.
+Status: in progress
+
+- [x] Select REST API plus JWT Authorizer via ADR-002.
+- [x] Migrate identity provider from Firebase to Cognito.
+- [ ] Create API Gateway REST API with proxy integration.
+- [ ] Configure CORS on API Gateway.
+- [ ] Configure IAM role for API Gateway → Backend invocation.
+- [ ] Validate Cognito issuer, audience, signature and expiry at the edge.
+- [ ] Add throttling, request validation, logs and metrics.
+- [ ] Add WAF using the architecture selected in the ADR.

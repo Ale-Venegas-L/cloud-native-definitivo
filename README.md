@@ -9,21 +9,26 @@ Biblioteca web de literatura clásica. MVP full-stack desarrollado como proyecto
 | Frontend | Vue 3.5, TypeScript 6, Vite 8, Tailwind CSS 4 |
 | Backend | Python 3.14, FastAPI, Pydantic, PyMongo |
 | Base de datos | MongoDB 7 |
-| Autenticación | Firebase Authentication (Google Sign-In) |
+| Autenticación | AWS Cognito (OAuth 2.0 PKCE) |
+| API Gateway | AWS API Gateway REST |
 | Contenedores | Docker, Docker Compose |
-| Infraestructura | Terraform (AWS) — en progreso |
 
 ## Arquitectura
 
 ```text
 Frontend (Vue 3)
    │
-   │ HTTP / JSON + Bearer Token
+   │ OAuth 2.0 / PKCE
    v
-FastAPI REST API (/api/v1)
+AWS Cognito (User Pool)
    │
+   │ JWT
    v
-MongoDB
+AWS API Gateway
+   │
+   │ IAM + JWT Authorizer
+   v
+FastAPI REST API (/api/v1) → MongoDB
 ```
 
 Módulos del backend: `auth`, `books`, `authors`. Cada módulo sigue el patrón router → service → repository.
@@ -53,16 +58,18 @@ Módulos del backend: `auth`, `books`, `authors`. Cada módulo sigue el patrón 
 | Validación JWT API Manager | Todas las rutas aplican validación JWT, verifica issuer y audience |
 | Evidencia de rutas | Llamadas con y sin token, respuestas 200/401/403 coherentes |
 
+Ver `docs/aws-setup.md` para la guía paso a paso de configuración en AWS.
+
 ## Estado actual
 
 ### Implementado
 
 | Componente | Estado |
 |---|---|
-| Frontend Vue 3 | Completo — catálogo público, admin CRUD, auth |
+| Frontend Vue 3 | Completo — catálogo público, admin CRUD, auth Cognito PKCE |
 | Backend FastAPI | Completo — módulos auth/books/authors, CORS, health |
 | MongoDB | Completo — conexión, seed data, mongomock fallback |
-| Firebase Auth | Completo — Google Sign-In, custom claims, verificación server-side |
+| Cognito JWT verification | Completo — JWKS, issuer/audience validation, custom claims |
 | Docker Compose | Completo — 3 servicios (mongodb, backend, frontend) |
 | Tests backend | Completos — pytest + coverage |
 | Tests frontend | Completos — Vitest + Vue Test Utils |
@@ -71,11 +78,10 @@ Módulos del backend: `auth`, `books`, `authors`. Cada módulo sigue el patrón 
 
 | Componente | Estado |
 |---|---|
-| AWS API Gateway | No implementado — sin archivos Terraform |
-| IDaaS tenant (PKCE) | No implementado — se usa Firebase Auth con Google Sign-In |
+| AWS API Gateway | Configuración manual pendiente (ver `docs/aws-setup.md`) |
+| Cognito User Pool | Configuración manual pendiente (ver `docs/aws-setup.md`) |
 | Despliegue cloud | No implementado — solo ejecución local vía docker-compose |
 | CI/CD | No configurado — `.github/workflows/` vacío |
-| Terraform IaC | No implementado — `infra/` vacío |
 | WAF | No implementado |
 
 ### Roadmap
@@ -88,11 +94,12 @@ Ver `docs/ROADMAP.md` para el detalle de hitos.
 | Hito 1.5 | Experiencia de interfaz | Completo |
 | Hito 2 | Integridad del dominio | Planificado |
 | Hito 3 | Calidad y delivery | Planificado |
-| Hito 4 | AWS API Gateway | Planificado |
+| Hito 4 | AWS API Gateway | En progreso |
 
 ## Decisiones de arquitectura
 
-Ver `docs/architecture/ADR-001-firebase-authentication.md` para la decisión sobre Firebase Authentication como proveedor de identidad.
+- `docs/architecture/ADR-001-firebase-authentication.md` — Decisión original (Firebase)
+- `docs/architecture/ADR-002-cognito-migration.md` — Migración a Cognito
 
 ## Estructura del proyecto
 
@@ -104,6 +111,7 @@ MVP-AWS-DESARROLLO-CLOUD-NATIVE-I_004D-/
 │   │   ├── core/               # Config, database
 │   │   ├── modules/            # auth, books, authors
 │   │   └── shared/             # Seed data
+│   ├── scripts/                # set_admin.py
 │   ├── tests/                  # pytest
 │   ├── Dockerfile
 │   └── requirements.txt
@@ -114,18 +122,17 @@ MVP-AWS-DESARROLLO-CLOUD-NATIVE-I_004D-/
 │   │   ├── components/         # Pages, UI, views, modals
 │   │   ├── services/           # api.ts (HTTP client)
 │   │   ├── router/             # Rutas + guards
-│   │   ├── lib/                # firebase.ts
+│   │   ├── lib/                # cognito.ts
 │   │   └── types/              # domain.ts
 │   ├── Dockerfile
 │   └── package.json
 │
-├── infra/                      # Terraform (AWS)
 ├── docs/
 │   ├── ROADMAP.md
+│   ├── aws-setup.md            # Guía configuración AWS
 │   └── architecture/
 ├── design/                     # Assets de diseño
 ├── docker-compose.yml
-├── firebase.json
 └── .env.example
 ```
 
@@ -134,11 +141,25 @@ MVP-AWS-DESARROLLO-CLOUD-NATIVE-I_004D-/
 ### Requisitos
 
 - Git, Python 3.14+, Node.js 22+, Docker Desktop
+- AWS Console access (para configurar Cognito y API Gateway)
 
-### Con Docker Compose (recomendado)
+### 1. Configurar AWS
+
+Seguir `docs/aws-setup.md` para crear:
+- Cognito User Pool + App Client
+- API Gateway REST API
+- Lambda Pre Token Generation
+
+### 2. Variables de entorno
 
 ```bash
-cp .env.example .env    # Completar variables de entorno
+cp .env.example .env
+# Completar con valores de AWS
+```
+
+### 3. Docker Compose
+
+```bash
 docker compose up --build
 ```
 
@@ -149,7 +170,7 @@ docker compose up --build
 | Swagger | http://localhost:8000/docs |
 | MongoDB | mongodb://localhost:27017 |
 
-### Sin Docker
+### 4. Sin Docker
 
 **Backend:**
 
@@ -179,14 +200,16 @@ APP_ENV=development
 MONGO_URI=mongodb://mongodb:27017
 MONGO_DATABASE=classic_library
 FRONTEND_URL=http://localhost:5173
-FIREBASE_PROJECT_ID=colud-native
-FIREBASE_CHECK_REVOKED=false
+COGNITO_REGION=us-east-1
+COGNITO_USER_POOL_ID=us-east-1_XXXXXXXXX
+COGNITO_APP_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
 
 # Frontend
 VITE_API_URL=http://localhost:8000/api/v1
-VITE_FIREBASE_API_KEY=your-web-api-key
-VITE_FIREBASE_AUTH_DOMAIN=colud-native.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=colud-native
+VITE_COGNITO_DOMAIN=classic-library.auth.us-east-1.amazoncognito.com
+VITE_COGNITO_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
+VITE_COGNITO_REDIRECT_URI=http://localhost:5173/callback
+VITE_COGNITO_REGION=us-east-1
 ```
 
 Nunca commitear `.env`. Está en `.gitignore`.

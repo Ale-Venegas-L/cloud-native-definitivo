@@ -10,7 +10,6 @@ Aplicación Vue 3 que consume la API REST de Classic Library. Permite navegar el
 | TypeScript | 6.0 |
 | Vite | 8.2 |
 | Tailwind CSS | 4.3 |
-| Firebase SDK | 12.18 |
 | Vue Router | 5.2 |
 | GSAP | 3.15 |
 | Vitest | 3.0 |
@@ -24,7 +23,7 @@ src/
 ├── style.css                        # Estilos globales (Tailwind)
 │
 ├── lib/
-│   └── firebase.ts                  # Inicialización de Firebase Auth
+│   └── cognito.ts                   # Configuración Cognito, PKCE, token exchange
 │
 ├── composables/
 │   ├── useAuth.ts                   # Estado de autenticación, login/logout
@@ -58,7 +57,8 @@ src/
     │   │   ├── books.vue            # Catálogo con filtros y búsqueda
     │   │   └── editions.vue         # Ediciones especiales
     │   ├── auth/
-    │   │   ├── login.vue            # Inicio de sesión con Google
+    │   │   ├── login.vue            # Inicio de sesión (redirige a Cognito)
+    │   │   ├── callback.vue         # Callback post-autenticación
     │   │   └── unauthorized.vue     # Acceso denegado
     │   ├── admin/
     │   │   ├── panel.vue            # Dashboard administrativo
@@ -96,29 +96,29 @@ src/
 
 ## Autenticación
 
-El frontend utiliza **Firebase Authentication** con **Google Sign-In** como proveedor de identidad.
+El frontend utiliza **AWS Cognito** con flujo **OAuth 2.0 Authorization Code + PKCE**.
 
 ### Flujo
 
 ```text
-Usuario clickea "Continuar con Google"
-  → Firebase muestra popup de Google OAuth
-  → Firebase almacena sesión localmente
-  → onAuthStateChanged notifica el cambio de estado
-  → getIdTokenResult() lee custom claims (admin)
-  → Si es admin → redirige a /admin
-  → Si no es admin → redirige a /unauthorized
+1. Usuario clickea "Iniciar sesión"
+2. Frontend genera code_verifier y code_challenge (S256)
+3. Redirect a Cognito Hosted UI → Google Sign-In
+4. Cognito redirige de vuelta con ?code=xxx&state=yyy
+5. Frontend intercambia code por tokens (POST /oauth2/token)
+6. Access token se almacena en sessionStorage
+7. Custom claims (admin, permissions) se leen del JWT
+8. Si es admin → /admin, si no → /unauthorized
 ```
 
 ### Capa de API (`services/api.ts`)
 
 - Todas las llamadas al backend pasan por `apiRequest<T>(path, options)`.
-- Cuando `options.authenticated` es `true`, se obtiene el token Firebase y se envía como `Authorization: Bearer <token>`.
-- Si la API responde 401, se fuerza refresh del token y se reintenta la petición automáticamente.
+- Cuando `options.authenticated` es `true`, se obtiene el access token de sessionStorage y se envía como `Authorization: Bearer <token>`.
 
 ### Route guards (`router/index.ts`)
 
-- Las rutas con `meta.requiresAdmin` verifican que el usuario esté autenticado y tenga el claim `admin: true`.
+- Las rutas con `meta.requiresAdmin` verifican que el usuario esté autenticado y tenga `custom:admin === true`.
 - Si no está autenticado → redirige a `/login`.
 - Si no es admin → redirige a `/unauthorized`.
 
@@ -130,6 +130,7 @@ Usuario clickea "Continuar con Google"
 | `/books` | `books.vue` | Público |
 | `/editions` | `editions.vue` | Público |
 | `/login` | `login.vue` | Público |
+| `/callback` | `callback.vue` | Público |
 | `/unauthorized` | `unauthorized.vue` | Público |
 | `/admin` | `panel.vue` | Admin |
 | `/admin/stock` | `stock.vue` | Admin |
@@ -138,16 +139,13 @@ Usuario clickea "Continuar con Google"
 
 ```env
 VITE_API_URL=http://localhost:8000/api/v1
-VITE_FIREBASE_API_KEY=your-web-api-key
-VITE_FIREBASE_AUTH_DOMAIN=colud-native.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=colud-native
-VITE_FIREBASE_STORAGE_BUCKET=colud-native.firebasestorage.app
-VITE_FIREBASE_MESSAGING_SENDER_ID=17691843333
-VITE_FIREBASE_APP_ID=1:17691843333:web:71a9e325b0288dda7e756c
-VITE_FIREBASE_MEASUREMENT_ID=G-FHGRCXMNXV
+VITE_COGNITO_DOMAIN=classic-library.auth.us-east-1.amazoncognito.com
+VITE_COGNITO_CLIENT_ID=your-app-client-id
+VITE_COGNITO_REDIRECT_URI=http://localhost:5173/callback
+VITE_COGNITO_REGION=us-east-1
 ```
 
-Copiar `.env.example` y completar los valores reales. Nunca commitear `.env`.
+Copiar `.env.example` y completar los valores reales de AWS Cognito. Nunca commitear `.env`.
 
 ## Instalación
 
