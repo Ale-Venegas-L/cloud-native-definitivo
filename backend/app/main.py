@@ -1,11 +1,13 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
+
 from app.core.config import settings
-from app.core.database import get_database, close_database, is_mock
-from app.modules.books.router import router as books_router
-from app.modules.authors.router import router as authors_router
+from app.core.database import close_database, get_database, is_mock
 from app.modules.auth.router import router as auth_router
+from app.modules.authors.router import router as authors_router
+from app.modules.books.router import router as books_router
 from app.shared.seed import seed_data
 
 
@@ -21,18 +23,11 @@ async def lifespan(app: FastAPI):
     close_database()
 
 
-app = FastAPI(
-    title=settings.APP_NAME,
-    version="0.1.0",
-    lifespan=lifespan
-)
+app = FastAPI(title=settings.APP_NAME, version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        settings.FRONTEND_URL,
-        "http://127.0.0.1:5173"
-    ],
+    allow_origins=[settings.FRONTEND_URL, "http://127.0.0.1:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -45,7 +40,4 @@ app.include_router(auth_router, prefix=settings.API_V1_PREFIX)
 
 @app.get(f"{settings.API_V1_PREFIX}/health", tags=["health"])
 async def health():
-    return {
-        "status": "ok",
-        "mock_db": is_mock()
-    }
+    return {"status": "ok", "mock_db": is_mock()}

@@ -1,9 +1,9 @@
-from typing import List, Optional
 from bson import ObjectId
+
 from app.core.database import get_database
 
 
-def get_authors() -> List[dict]:
+def get_authors() -> list[dict]:
     db = get_database()
     authors = list(db.authors.find())
     for author in authors:
@@ -11,7 +11,7 @@ def get_authors() -> List[dict]:
     return authors
 
 
-def get_author_by_id(author_id: str) -> Optional[dict]:
+def get_author_by_id(author_id: str) -> dict | None:
     db = get_database()
     author = db.authors.find_one({"_id": ObjectId(author_id)})
     if author:
@@ -28,7 +28,7 @@ def create_author(author_data: dict) -> dict:
     return author_data
 
 
-def update_author(author_id: str, author_data: dict) -> Optional[dict]:
+def update_author(author_id: str, author_data: dict) -> dict | None:
     db = get_database()
     db.authors.update_one({"_id": ObjectId(author_id)}, {"$set": author_data})
     return get_author_by_id(author_id)
@@ -40,7 +40,7 @@ def delete_author(author_id: str) -> bool:
     return result.deleted_count > 0
 
 
-def get_books_by_author(author_id: str) -> List[dict]:
+def get_books_by_author(author_id: str) -> list[dict]:
     db = get_database()
     books = list(db.books.find({"author_id": author_id}))
     for book in books:

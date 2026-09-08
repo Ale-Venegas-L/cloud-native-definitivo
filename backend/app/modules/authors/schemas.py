@@ -1,14 +1,13 @@
 from pydantic import BaseModel, Field
-from typing import Optional
 
 
 class AuthorBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
     country: str = Field(..., min_length=1, max_length=100)
     birth_year: int = Field(..., ge=1000, le=2100)
-    death_year: Optional[int] = Field(None, ge=1000, le=2100)
-    biography: Optional[str] = None
-    image_url: Optional[str] = None
+    death_year: int | None = Field(None, ge=1000, le=2100)
+    biography: str | None = None
+    image_url: str | None = None
 
 
 class AuthorCreate(AuthorBase):
@@ -16,12 +15,12 @@ class AuthorCreate(AuthorBase):
 
 
 class AuthorUpdate(BaseModel):
-    name: Optional[str] = Field(None, min_length=1, max_length=200)
-    country: Optional[str] = Field(None, min_length=1, max_length=100)
-    birth_year: Optional[int] = Field(None, ge=1000, le=2100)
-    death_year: Optional[int] = Field(None, ge=1000, le=2100)
-    biography: Optional[str] = None
-    image_url: Optional[str] = None
+    name: str | None = Field(None, min_length=1, max_length=200)
+    country: str | None = Field(None, min_length=1, max_length=100)
+    birth_year: int | None = Field(None, ge=1000, le=2100)
+    death_year: int | None = Field(None, ge=1000, le=2100)
+    biography: str | None = None
+    image_url: str | None = None
 
 
 class AuthorResponse(AuthorBase):

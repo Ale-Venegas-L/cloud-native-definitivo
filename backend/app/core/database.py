@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+
 from app.core.config import settings
 
 client = None
@@ -15,6 +16,7 @@ def get_database():
             db = client[settings.MONGO_DATABASE]
         except Exception:
             import mongomock
+
             client = mongomock.MongoClient()
             db = client[settings.MONGO_DATABASE]
             _use_mock = True

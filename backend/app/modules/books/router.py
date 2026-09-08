@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
-from typing import List
-from app.modules.books.schemas import BookCreate, BookUpdate, BookResponse
-from app.modules.books import service
+
 from app.modules.auth.dependencies import require_admin
 from app.modules.auth.schemas import AuthenticatedUser
+from app.modules.books import service
+from app.modules.books.schemas import BookCreate, BookResponse, BookUpdate
 
 router = APIRouter(prefix="/books", tags=["books"])
 
 
-@router.get("/", response_model=List[BookResponse])
+@router.get("/", response_model=list[BookResponse])
 def get_books():
     return service.get_books()
 

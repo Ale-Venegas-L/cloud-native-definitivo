@@ -6,7 +6,6 @@ from google.auth import exceptions as google_auth_exceptions
 from app.modules.auth import service
 from app.modules.auth.schemas import AuthenticatedUser
 
-
 bearer_scheme = HTTPBearer(auto_error=False)
 
 

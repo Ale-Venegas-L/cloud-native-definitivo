@@ -15,7 +15,7 @@ def seed_data():
             "birth_year": 1547,
             "death_year": 1616,
             "biography": "Novelista, poeta y dramaturgo español. Considerado una de las figuras más destacadas de la literatura española.",
-            "image_url": "/authors/cervantes.webp"
+            "image_url": "/authors/cervantes.webp",
         },
         {
             "name": "William Shakespeare",
@@ -23,7 +23,7 @@ def seed_data():
             "birth_year": 1564,
             "death_year": 1616,
             "biography": "Dramaturgo y poeta inglés. Autor de Hamlet, Romeo y Julieta, y muchas otras obras fundamentales de la literatura.",
-            "image_url": "/authors/shakespeare.webp"
+            "image_url": "/authors/shakespeare.webp",
         },
         {
             "name": "Gabriel García Márquez",
@@ -31,7 +31,7 @@ def seed_data():
             "birth_year": 1927,
             "death_year": 2014,
             "biography": "Escritor y periodista colombiano. Premio Nobel de Literatura 1982. Padre del realismo mágico.",
-            "image_url": "/authors/garcia-marquez.webp"
+            "image_url": "/authors/garcia-marquez.webp",
         },
         {
             "name": "Jorge Luis Borges",
@@ -39,7 +39,7 @@ def seed_data():
             "birth_year": 1899,
             "death_year": 1986,
             "biography": "Escritor y ensayista argentino. Conocido por sus cuentos fantásticos y filosóficos.",
-            "image_url": "/authors/borges.webp"
+            "image_url": "/authors/borges.webp",
         },
         {
             "name": "Jane Austen",
@@ -47,12 +47,12 @@ def seed_data():
             "birth_year": 1775,
             "death_year": 1817,
             "biography": "Novelista inglesa conocida por su crítica social y su ironía. Autora de Orgullo y Prejuicio.",
-            "image_url": "/authors/austen.webp"
-        }
+            "image_url": "/authors/austen.webp",
+        },
     ]
 
     result = db.authors.insert_many(authors)
-    author_ids = {a["name"]: str(_id) for a, _id in zip(authors, result.inserted_ids)}
+    author_ids = {a["name"]: str(_id) for a, _id in zip(authors, result.inserted_ids, strict=True)}
 
     books = [
         {
@@ -62,7 +62,7 @@ def seed_data():
             "publication_year": 1605,
             "genre": "Novela",
             "description": "Obra cumbre de la literatura española que narra las aventuras de un hidalgo que enloquece leyendo libros de caballerías.",
-            "cover_url": "/covers/don-quijote.webp"
+            "cover_url": "/covers/don-quijote.webp",
         },
         {
             "title": "La Celestina",
@@ -71,7 +71,7 @@ def seed_data():
             "publication_year": 1499,
             "genre": "Tragicomedia",
             "description": "Obra de Fernando de Rojas que mezcla elementos medievales y renacentistas.",
-            "cover_url": "/covers/celestina.webp"
+            "cover_url": "/covers/celestina.webp",
         },
         {
             "title": "Hamlet",
@@ -80,7 +80,7 @@ def seed_data():
             "publication_year": 1603,
             "genre": "Tragedia",
             "description": "La obra más famosa de Shakespeare, que narra la historia del príncipe de Dinamarca.",
-            "cover_url": "/covers/hamlet.webp"
+            "cover_url": "/covers/hamlet.webp",
         },
         {
             "title": "Romeo y Julieta",
@@ -89,7 +89,7 @@ def seed_data():
             "publication_year": 1597,
             "genre": "Tragedia",
             "description": "La historia de dos jóvenes amantes cuyas familias están enfrentadas.",
-            "cover_url": "/covers/romeo-julieta.webp"
+            "cover_url": "/covers/romeo-julieta.webp",
         },
         {
             "title": "El amor en los tiempos del cólera",
@@ -98,7 +98,7 @@ def seed_data():
             "publication_year": 1985,
             "genre": "Novela",
             "description": "Una historia de amor que abarca más de cincuenta años en el Caribe colombiano.",
-            "cover_url": "/covers/amor-colera.webp"
+            "cover_url": "/covers/amor-colera.webp",
         },
         {
             "title": "Cien años de soledad",
@@ -107,7 +107,7 @@ def seed_data():
             "publication_year": 1967,
             "genre": "Realismo mágico",
             "description": "La historia de la familia Buendía a lo largo de siete generaciones en Macondo.",
-            "cover_url": "/covers/cien-anos.webp"
+            "cover_url": "/covers/cien-anos.webp",
         },
         {
             "title": "Ficciones",
@@ -116,7 +116,7 @@ def seed_data():
             "publication_year": 1944,
             "genre": "Cuento",
             "description": "Colección de cuentos que exploran laberintos, espejos y bibliotecas infinitas.",
-            "cover_url": "/covers/ficciones.webp"
+            "cover_url": "/covers/ficciones.webp",
         },
         {
             "title": "El Aleph",
@@ -125,7 +125,7 @@ def seed_data():
             "publication_year": 1949,
             "genre": "Cuento",
             "description": "Colección de cuentos que incluye el famoso relato del punto que contiene el universo.",
-            "cover_url": "/covers/aleph.webp"
+            "cover_url": "/covers/aleph.webp",
         },
         {
             "title": "Orgullo y Prejuicio",
@@ -134,8 +134,8 @@ def seed_data():
             "publication_year": 1813,
             "genre": "Novela",
             "description": "La historia de Elizabeth Bennet y el señor Darcy en la Inglaterra del siglo XIX.",
-            "cover_url": "/covers/orgullo-prejuicio.webp"
-        }
+            "cover_url": "/covers/orgullo-prejuicio.webp",
+        },
     ]
 
     db.books.insert_many(books)

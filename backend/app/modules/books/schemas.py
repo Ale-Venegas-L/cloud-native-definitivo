@@ -1,6 +1,4 @@
 from pydantic import BaseModel, Field
-from typing import Optional
-from bson import ObjectId
 
 
 class BookBase(BaseModel):
@@ -9,8 +7,8 @@ class BookBase(BaseModel):
     country: str = Field(..., min_length=1, max_length=100)
     publication_year: int = Field(..., ge=1000, le=2100)
     genre: str = Field(..., min_length=1, max_length=100)
-    description: Optional[str] = None
-    cover_url: Optional[str] = None
+    description: str | None = None
+    cover_url: str | None = None
 
 
 class BookCreate(BookBase):
@@ -18,13 +16,13 @@ class BookCreate(BookBase):
 
 
 class BookUpdate(BaseModel):
-    title: Optional[str] = Field(None, min_length=1, max_length=200)
-    author_id: Optional[str] = Field(None, min_length=1)
-    country: Optional[str] = Field(None, min_length=1, max_length=100)
-    publication_year: Optional[int] = Field(None, ge=1000, le=2100)
-    genre: Optional[str] = Field(None, min_length=1, max_length=100)
-    description: Optional[str] = None
-    cover_url: Optional[str] = None
+    title: str | None = Field(None, min_length=1, max_length=200)
+    author_id: str | None = Field(None, min_length=1)
+    country: str | None = Field(None, min_length=1, max_length=100)
+    publication_year: int | None = Field(None, ge=1000, le=2100)
+    genre: str | None = Field(None, min_length=1, max_length=100)
+    description: str | None = None
+    cover_url: str | None = None
 
 
 class BookResponse(BookBase):

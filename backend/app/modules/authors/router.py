@@ -1,15 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException
-from typing import List
-from app.modules.authors.schemas import AuthorCreate, AuthorUpdate, AuthorResponse
-from app.modules.authors import service
-from app.modules.books.schemas import BookResponse
+
 from app.modules.auth.dependencies import require_admin
 from app.modules.auth.schemas import AuthenticatedUser
+from app.modules.authors import service
+from app.modules.authors.schemas import AuthorCreate, AuthorResponse, AuthorUpdate
+from app.modules.books.schemas import BookResponse
 
 router = APIRouter(prefix="/authors", tags=["authors"])
 
 
-@router.get("/", response_model=List[AuthorResponse])
+@router.get("/", response_model=list[AuthorResponse])
 def get_authors():
     return service.get_authors()
 
@@ -52,7 +52,7 @@ def delete_author(
         raise HTTPException(status_code=404, detail="Author not found")
 
 
-@router.get("/{author_id}/books", response_model=List[BookResponse])
+@router.get("/{author_id}/books", response_model=list[BookResponse])
 def get_author_books(author_id: str):
     author = service.get_author_by_id(author_id)
     if not author:

@@ -14,9 +14,7 @@ def initialize_firebase() -> firebase_admin.App:
     try:
         return firebase_admin.get_app()
     except ValueError:
-        return firebase_admin.initialize_app(
-            options={"projectId": settings.FIREBASE_PROJECT_ID}
-        )
+        return firebase_admin.initialize_app(options={"projectId": settings.FIREBASE_PROJECT_ID})
 
 
 def verify_token(id_token: str) -> AuthenticatedUser:
