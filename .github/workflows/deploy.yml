@@ -37,10 +37,17 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
+          if [ -z "$SSH_PRIVATE_KEY" ]; then
+            echo "::error::SSH_PRIVATE_KEY secret no está configurado"
+            exit 1
+          fi
           mkdir -p ~/.ssh
           printf '%s' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy-key.pem
           chmod 600 ~/.ssh/deploy-key.pem
-          ssh-keygen -y -f ~/.ssh/deploy-key.pem > ~/.ssh/deploy-key.pub
+          if ! ssh-keygen -y -f ~/.ssh/deploy-key.pem > ~/.ssh/deploy-key.pub; then
+            echo "::error::SSH key inválida. Verifica que el secret SSH_PRIVATE_KEY contenga la clave completa"
+            exit 1
+          fi
           echo "public_key=$(cat ~/.ssh/deploy-key.pub)" >> $GITHUB_OUTPUT
 
       - name: Configurar credenciales AWS
@@ -101,9 +108,17 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
+          if [ -z "$SSH_PRIVATE_KEY" ]; then
+            echo "::error::SSH_PRIVATE_KEY secret no está configurado"
+            exit 1
+          fi
           mkdir -p ~/.ssh
           printf '%s' "$SSH_PRIVATE_KEY" > ~/.ssh/${{ env.PROJECT_NAME }}-key.pem
           chmod 600 ~/.ssh/${{ env.PROJECT_NAME }}-key.pem
+          if ! ssh-keygen -y -f ~/.ssh/${{ env.PROJECT_NAME }}-key.pem > /dev/null; then
+            echo "::error::SSH key inválida"
+            exit 1
+          fi
 
       - name: Esperar que la instancia esté lista
         run: |
