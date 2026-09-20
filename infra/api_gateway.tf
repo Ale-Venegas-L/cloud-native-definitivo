@@ -84,42 +84,50 @@ locals {
       resource_id   = aws_api_gateway_resource.books.id
       http_method   = "ANY"
       authorization = "NONE"
+      backend_path  = "/api/v1/books"
     }
     books_id_any = {
       resource_id   = aws_api_gateway_resource.books_id.id
       http_method   = "ANY"
       authorization = "NONE"
+      backend_path  = "/api/v1/books/{id}"
     }
     authors_any = {
       resource_id   = aws_api_gateway_resource.authors.id
       http_method   = "ANY"
       authorization = "NONE"
+      backend_path  = "/api/v1/authors"
     }
     authors_id_any = {
       resource_id   = aws_api_gateway_resource.authors_id.id
       http_method   = "ANY"
       authorization = "NONE"
+      backend_path  = "/api/v1/authors/{id}"
     }
     authors_id_books_any = {
       resource_id   = aws_api_gateway_resource.authors_id_books.id
       http_method   = "ANY"
       authorization = "NONE"
+      backend_path  = "/api/v1/authors/{id}/books"
     }
     auth_me_get = {
       resource_id   = aws_api_gateway_resource.auth_me.id
       http_method   = "GET"
       authorization = var.enable_cognito ? "COGNITO_USER_POOLS" : "NONE"
       authorizer_id = var.enable_cognito ? aws_api_gateway_authorizer.cognito[0].id : null
+      backend_path  = "/api/v1/auth/me"
     }
     health_get = {
       resource_id   = aws_api_gateway_resource.health.id
       http_method   = "GET"
       authorization = "NONE"
+      backend_path  = "/api/v1/health"
     }
     v1_any = {
       resource_id   = aws_api_gateway_resource.v1.id
       http_method   = "ANY"
       authorization = "NONE"
+      backend_path  = "/api/v1"
     }
   }
 }
@@ -141,12 +149,8 @@ resource "aws_api_gateway_integration" "integrations" {
   resource_id             = each.value.resource_id
   http_method             = aws_api_gateway_method.methods[each.key].http_method
   integration_http_method = "ANY"
-  type                    = "HTTP_PROXY"
-  uri                     = "http://${aws_instance.app.public_ip}:8000/{proxy}"
-
-  request_parameters = {
-    "integration.request.path.proxy" = "method.request.path.proxy"
-  }
+  type                    = "HTTP"
+  uri                     = "http://${aws_instance.app.public_ip}:8000${each.value.backend_path}"
 }
 
 locals {
