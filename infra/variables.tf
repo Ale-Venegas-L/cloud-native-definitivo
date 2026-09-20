@@ -20,3 +20,28 @@ variable "ssh_public_key" {
   description = "SSH public key for EC2 access"
   type        = string
 }
+
+variable "callback_urls" {
+  description = "OAuth callback URLs for Cognito"
+  type        = list(string)
+  default     = ["http://localhost:5173/callback"]
+}
+
+variable "logout_urls" {
+  description = "OAuth logout URLs for Cognito"
+  type        = list(string)
+  default     = ["http://localhost:5173/"]
+}
+
+variable "admin_email" {
+  description = "Admin user email for Cognito"
+  type        = string
+  default     = "admin@example.com"
+}
+
+variable "admin_temp_password" {
+  description = "Admin user temporary password"
+  type        = string
+  default     = "Admin123!"
+  sensitive   = true
+}

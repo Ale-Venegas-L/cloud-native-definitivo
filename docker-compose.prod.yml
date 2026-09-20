@@ -23,6 +23,9 @@ services:
       - MONGO_URI=${MONGO_URI:-mongodb://admin:password@mongodb:27017/classic_library?authSource=admin}
       - MONGO_DATABASE=${MONGO_DATABASE:-classic_library}
       - FRONTEND_URL=http://${PUBLIC_IP}
+      - COGNITO_REGION=${COGNITO_REGION:-us-east-1}
+      - COGNITO_USER_POOL_ID=${COGNITO_USER_POOL_ID}
+      - COGNITO_APP_CLIENT_ID=${COGNITO_APP_CLIENT_ID}
     depends_on:
       - mongodb
 

@@ -15,5 +15,30 @@ output "public_dns" {
 
 output "ssh_command" {
   description = "SSH command to connect"
-  value       = "ssh -i ~/.ssh/${var.project_name}-key.pem ec2-user@${aws_instance.app.public_ip}"
+  value       = "ssh -i ~/.ssh/${var.project_name}-key ec2-user@${aws_instance.app.public_ip}"
+}
+
+output "cognito_user_pool_id" {
+  description = "Cognito User Pool ID"
+  value       = aws_cognito_user_pool.main.id
+}
+
+output "cognito_app_client_id" {
+  description = "Cognito App Client ID"
+  value       = aws_cognito_user_pool_client.main.id
+}
+
+output "cognito_domain" {
+  description = "Cognito hosted UI domain"
+  value       = "${aws_cognito_user_pool_domain.main.domain}.auth.${var.aws_region}.amazoncognito.com"
+}
+
+output "api_gateway_url" {
+  description = "API Gateway invoke URL (prod)"
+  value       = aws_api_gateway_stage.prod.invoke_url
+}
+
+output "api_gateway_url_dev" {
+  description = "API Gateway invoke URL (dev)"
+  value       = aws_api_gateway_stage.dev.invoke_url
 }

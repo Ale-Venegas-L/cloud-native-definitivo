@@ -73,15 +73,16 @@ Ver `docs/aws-setup.md` para la guía paso a paso de configuración en AWS.
 | Docker Compose | Completo — 3 servicios (mongodb, backend, frontend) |
 | Tests backend | Completos — pytest + coverage |
 | Tests frontend | Completos — Vitest + Vue Test Utils |
+| AWS API Gateway | Implementado — Terraform REST API + CORS + Authorizer |
+| Cognito User Pool | Implementado — Terraform con Lambda Pre Token Generation |
+| Despliegue cloud | Implementado — EC2 via Terraform + GitHub Actions |
+| CI/CD | Implementado — `.github/workflows/deploy.yml` (push a `aws`) |
 
-### Pendiente (Prueba 1)
+### Pendiente
 
 | Componente | Estado |
 |---|---|
-| AWS API Gateway | Configuración manual pendiente (ver `docs/aws-setup.md`) |
-| Cognito User Pool | Configuración manual pendiente (ver `docs/aws-setup.md`) |
-| Despliegue cloud | Implementado — EC2 via Terraform + GitHub Actions |
-| CI/CD | Implementado — `.github/workflows/deploy.yml` (push a `aws`) |
+| Google Identity Provider | Requiere setup manual en Google Cloud Console (ver `docs/aws-setup.md`) |
 | WAF | No implementado |
 
 ### Roadmap

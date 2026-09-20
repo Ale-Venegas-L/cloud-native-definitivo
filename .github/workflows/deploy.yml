@@ -28,6 +28,10 @@ jobs:
     outputs:
       instance_ip: ${{ steps.terraform.outputs.public_ip }}
       instance_id: ${{ steps.terraform.outputs.instance_id }}
+      cognito_user_pool_id: ${{ steps.terraform.outputs.cognito_user_pool_id }}
+      cognito_app_client_id: ${{ steps.terraform.outputs.cognito_app_client_id }}
+      cognito_domain: ${{ steps.terraform.outputs.cognito_domain }}
+      api_gateway_url: ${{ steps.terraform.outputs.api_gateway_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -65,7 +69,6 @@ jobs:
 
       - name: Limpiar recursos AWS existentes
         run: |
-          # Terminar instancia EC2
           INSTANCE_ID=$(aws ec2 describe-instances \
             --filters "Name=tag:Name,Values=${{ env.PROJECT_NAME }}-ec2" \
             "Name=instance-state-name,Values=running,stopped,pending" \
@@ -75,20 +78,16 @@ jobs:
             echo "Terminando instancia: $INSTANCE_ID"
             aws ec2 terminate-instances --instance-ids $INSTANCE_ID
             aws ec2 wait instance-terminated --instance-ids $INSTANCE_ID
-            echo "Instancia terminada"
           fi
 
-          # Eliminar key pair
           aws ec2 delete-key-pair --key-name ${{ env.PROJECT_NAME }}-key 2>/dev/null && \
             echo "Key pair eliminado" || echo "Key pair no existía"
 
-          # Eliminar security group
           SG_ID=$(aws ec2 describe-security-groups \
             --filters "Name=group-name,Values=${{ env.PROJECT_NAME }}-sg" \
             --query "SecurityGroups[].GroupId" \
             --output text 2>/dev/null) || true
           if [ -n "$SG_ID" ]; then
-            echo "Eliminando security group: $SG_ID"
             aws ec2 delete-security-group --group-id $SG_ID && \
               echo "Security group eliminado" || echo "No se pudo eliminar (tiene dependencias)"
           fi
@@ -103,9 +102,15 @@ jobs:
         working-directory: infra
         run: |
           terraform apply -auto-approve \
-            -var="ssh_public_key=${{ steps.ssh.outputs.public_key }}"
+            -var="ssh_public_key=${{ steps.ssh.outputs.public_key }}" \
+            -var="callback_urls=[\"http://${{ github.event.repository.html_url | replace('https://', '') }}/callback\"]" \
+            -var="logout_urls=[\"http://${{ github.event.repository.html_url | replace('https://', '') }}/\"]"
           echo "public_ip=$(terraform output -raw public_ip)" >> $GITHUB_OUTPUT
           echo "instance_id=$(terraform output -raw instance_id)" >> $GITHUB_OUTPUT
+          echo "cognito_user_pool_id=$(terraform output -raw cognito_user_pool_id)" >> $GITHUB_OUTPUT
+          echo "cognito_app_client_id=$(terraform output -raw cognito_app_client_id)" >> $GITHUB_OUTPUT
+          echo "cognito_domain=$(terraform output -raw cognito_domain)" >> $GITHUB_OUTPUT
+          echo "api_gateway_url=$(terraform output -raw api_gateway_url)" >> $GITHUB_OUTPUT
 
       - name: Destruir Terraform
         if: github.event.inputs.action == 'destroy'
@@ -160,10 +165,13 @@ jobs:
               'MONGO_URI=mongodb://admin:password@mongodb:27017/classic_library?authSource=admin' \
               'MONGO_DATABASE=classic_library' \
               'PUBLIC_IP=${{ needs.infrastructure.outputs.instance_ip }}' \
+              'COGNITO_REGION=${{ env.AWS_REGION }}' \
+              'COGNITO_USER_POOL_ID=${{ needs.infrastructure.outputs.cognito_user_pool_id }}' \
+              'COGNITO_APP_CLIENT_ID=${{ needs.infrastructure.outputs.cognito_app_client_id }}' \
               'VITE_API_URL=http://${{ needs.infrastructure.outputs.instance_ip }}/api/v1' \
-              'VITE_COGNITO_DOMAIN=${{ secrets.VITE_COGNITO_DOMAIN }}' \
-              'VITE_COGNITO_CLIENT_ID=${{ secrets.VITE_COGNITO_CLIENT_ID }}' \
-              'VITE_COGNITO_REGION=${{ secrets.VITE_COGNITO_REGION }}' \
+              'VITE_COGNITO_DOMAIN=${{ needs.infrastructure.outputs.cognito_domain }}' \
+              'VITE_COGNITO_CLIENT_ID=${{ needs.infrastructure.outputs.cognito_app_client_id }}' \
+              'VITE_COGNITO_REGION=${{ env.AWS_REGION }}' \
               > .env"
 
       - name: Desplegar con Docker Compose
@@ -198,4 +206,6 @@ jobs:
           echo "=========================================="
           echo "URL de la app: http://${{ needs.infrastructure.outputs.instance_ip }}"
           echo "URL de la API: http://${{ needs.infrastructure.outputs.instance_ip }}/api/v1"
+          echo "API Gateway:  ${{ needs.infrastructure.outputs.api_gateway_url }}"
+          echo "Cognito:     ${{ needs.infrastructure.outputs.cognito_domain }}"
           echo "=========================================="
