@@ -10,6 +10,12 @@ variable "ami_id" {
   default     = "ami-09179a962fadf762b"
 }
 
+variable "enable_cognito" {
+  description = "Create Cognito User Pool + Lambda (set false if no IAM permissions)"
+  type        = bool
+  default     = false
+}
+
 variable "project_name" {
   description = "Project name for resource naming"
   type        = string

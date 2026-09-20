@@ -71,10 +71,11 @@ resource "aws_api_gateway_resource" "health" {
 }
 
 resource "aws_api_gateway_authorizer" "cognito" {
+  count         = var.enable_cognito ? 1 : 0
   name          = "${var.project_name}-cognito-authorizer"
   rest_api_id   = aws_api_gateway_rest_api.main.id
   type          = "COGNITO_USER_POOLS"
-  provider_arns = [aws_cognito_user_pool.main.arn]
+  provider_arns = [aws_cognito_user_pool.main[0].arn]
 }
 
 locals {
@@ -107,8 +108,8 @@ locals {
     auth_me_get = {
       resource_id   = aws_api_gateway_resource.auth_me.id
       http_method   = "GET"
-      authorization = "COGNITO_USER_POOLS"
-      authorizer_id = aws_api_gateway_authorizer.cognito.id
+      authorization = var.enable_cognito ? "COGNITO_USER_POOLS" : "NONE"
+      authorizer_id = var.enable_cognito ? aws_api_gateway_authorizer.cognito[0].id : null
     }
     health_get = {
       resource_id   = aws_api_gateway_resource.health.id
@@ -181,6 +182,8 @@ resource "aws_api_gateway_integration" "options" {
   request_templates = {
     "application/json" = "{\"statusCode\": 200}"
   }
+
+  depends_on = [aws_api_gateway_method.options]
 }
 
 resource "aws_api_gateway_method_response" "options_200" {
@@ -200,6 +203,8 @@ resource "aws_api_gateway_method_response" "options_200" {
   response_models = {
     "application/json" = "Empty"
   }
+
+  depends_on = [aws_api_gateway_integration.options]
 }
 
 resource "aws_api_gateway_integration_response" "options_200" {

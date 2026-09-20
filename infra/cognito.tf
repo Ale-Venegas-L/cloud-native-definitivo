@@ -1,5 +1,6 @@
 resource "aws_cognito_user_pool" "main" {
-  name = "${var.project_name}-users"
+  count = var.enable_cognito ? 1 : 0
+  name  = "${var.project_name}-users"
 
   username_attributes = ["email"]
 
@@ -36,7 +37,7 @@ resource "aws_cognito_user_pool" "main" {
   }
 
   lambda_config {
-    pre_token_generation = aws_lambda_function.pre_token_generation.arn
+    pre_token_generation = aws_lambda_function.pre_token_generation[0].arn
   }
 
   tags = {
@@ -45,8 +46,9 @@ resource "aws_cognito_user_pool" "main" {
 }
 
 resource "aws_cognito_user_pool_client" "main" {
+  count        = var.enable_cognito ? 1 : 0
   name         = "${var.project_name}-web"
-  user_pool_id = aws_cognito_user_pool.main.id
+  user_pool_id = aws_cognito_user_pool.main[0].id
 
   explicit_auth_flows = [
     "ALLOW_USER_SRP_AUTH",
@@ -66,12 +68,14 @@ resource "aws_cognito_user_pool_client" "main" {
 }
 
 resource "aws_cognito_user_pool_domain" "main" {
+  count        = var.enable_cognito ? 1 : 0
   domain       = var.project_name
-  user_pool_id = aws_cognito_user_pool.main.id
+  user_pool_id = aws_cognito_user_pool.main[0].id
 }
 
 resource "aws_cognito_user" "admin" {
-  user_pool_id = aws_cognito_user_pool.main.id
+  count        = var.enable_cognito ? 1 : 0
+  user_pool_id = aws_cognito_user_pool.main[0].id
   username     = var.admin_email
 
   attributes = {
