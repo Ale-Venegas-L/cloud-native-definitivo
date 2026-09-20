@@ -46,9 +46,6 @@ jobs:
           chmod 600 ~/.ssh/deploy-key.pem
           if ! ssh-keygen -y -f ~/.ssh/deploy-key.pem > ~/.ssh/deploy-key.pub; then
             echo "::error::SSH key inválida"
-            echo "Key length: ${#SSH_PRIVATE_KEY} chars"
-            echo "First line: $(echo "$SSH_PRIVATE_KEY" | head -1)"
-            echo "Last line: $(echo "$SSH_PRIVATE_KEY" | tail -1)"
             exit 1
           fi
           echo "public_key=$(cat ~/.ssh/deploy-key.pub)" >> $GITHUB_OUTPUT
@@ -66,63 +63,33 @@ jobs:
         with:
           terraform_version: "1.9"
 
-      - name: Limpiar recursos existentes
-        env:
-          AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}
-        run: |
-          echo "Eliminando instancia EC2 si existe..."
-          INSTANCE_ID=$(aws ec2 describe-instances \
-            --filters "Name=tag:Name,Values=${{ env.PROJECT_NAME }}-ec2" \
-            --query "Reservations[].Instances[?State.Name=='running'].InstanceId[]" \
-            --output text 2>/dev/null || true)
-          if [ -n "$INSTANCE_ID" ]; then
-            aws ec2 terminate-instances --instance-ids $INSTANCE_ID
-            echo "Esperando que la instancia termine..."
-            aws ec2 wait instance-terminated --instance-ids $INSTANCE_ID
-          fi
-
-          echo "Eliminando key pair si existe..."
-          aws ec2 delete-key-pair --key-name ${{ env.PROJECT_NAME }}-key 2>/dev/null || true
-
-          echo "Eliminando security group si existe..."
-          SG_ID=$(aws ec2 describe-security-groups \
-            --filters "Name=group-name,Values=${{ env.PROJECT_NAME }}-sg" \
-            --query "SecurityGroups[].GroupId" \
-            --output text 2>/dev/null || true)
-          if [ -n "$SG_ID" ]; then
-            aws ec2 delete-security-group --group-id $SG_ID 2>/dev/null || true
-          fi
-
       - name: Inicializar Terraform
         working-directory: infra
         run: terraform init
 
-      - name: Plan de Terraform
-        id: plan
-        working-directory: infra
-        run: |
-          terraform plan \
-            -var="ssh_public_key=${{ steps.ssh.outputs.public_key }}" \
-            -out=tfplan \
-            -input=false
-
-      - name: Aplicar Terraform
+      - name: Destruir recursos existentes
         if: github.event.inputs.action != 'destroy'
         working-directory: infra
-        run: terraform apply -input=false tfplan
+        run: |
+          terraform destroy -auto-approve \
+            -var="ssh_public_key=${{ steps.ssh.outputs.public_key }}" || true
 
-      - name: Salida de Terraform
+      - name: Aplicar Terraform
         id: terraform
+        if: github.event.inputs.action != 'destroy'
         working-directory: infra
         run: |
+          terraform apply -auto-approve \
+            -var="ssh_public_key=${{ steps.ssh.outputs.public_key }}"
           echo "public_ip=$(terraform output -raw public_ip)" >> $GITHUB_OUTPUT
           echo "instance_id=$(terraform output -raw instance_id)" >> $GITHUB_OUTPUT
 
       - name: Destruir Terraform
         if: github.event.inputs.action == 'destroy'
         working-directory: infra
-        run: terraform destroy -auto-approve \
-          -var="ssh_public_key=${{ steps.ssh.outputs.public_key }}"
+        run: |
+          terraform destroy -auto-approve \
+            -var="ssh_public_key=${{ steps.ssh.outputs.public_key }}"
 
   deploy:
     name: Desplegar Aplicación
@@ -138,17 +105,9 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
-          if [ -z "$SSH_PRIVATE_KEY" ]; then
-            echo "::error::SSH_PRIVATE_KEY secret no está configurado"
-            exit 1
-          fi
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/${{ env.PROJECT_NAME }}-key.pem
           chmod 600 ~/.ssh/${{ env.PROJECT_NAME }}-key.pem
-          if ! ssh-keygen -y -f ~/.ssh/${{ env.PROJECT_NAME }}-key.pem > /dev/null; then
-            echo "::error::SSH key inválida"
-            exit 1
-          fi
 
       - name: Esperar que la instancia esté lista
         run: |
