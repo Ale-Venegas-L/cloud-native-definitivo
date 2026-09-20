@@ -1,20 +1,76 @@
 # Deploy a EC2 con GitHub Actions + AWS Academy
 
-## Prerrequisitos
+## Requerimientos
 
-1. Cuenta de AWS Academy con acceso a laboratorios
-2. GitHub repository con acceso a secrets
+| Requisito | Descripcion |
+|-----------|-------------|
+| Cuenta AWS Academy | Acceso a laboratorios temporales con credenciales |
+| GitHub repository | Con acceso a secrets y branch `aws` |
+| GitHub CLI (`gh`) | Opcional, para gestionar secrets desde terminal |
+| Clave SSH | Generada localmente, la publica se sube a AWS |
 
-## Infraestructura自动izada (Terraform)
+## Secrets necesarios
 
-El workflow despliega automáticamente:
+Solo necesitas configurar **4 secrets**. Los valores de Cognito y API Gateway se generan automaticamente via Terraform.
 
-- **EC2**: Instancia Amazon Linux 2023 con Docker
-- **Cognito**: User Pool, App Client, dominio hosted UI, Lambda Pre Token Generation
-- **API Gateway**: REST API con CORS, authorizer Cognito, todas las rutas
-- **Lambda**: Pre Token Generation para inyectar custom claims (admin, permissions)
+### Secrets permanentes
 
-## Primer Setup
+| Secret | Descripcion | Como obtenerlo |
+|--------|-------------|----------------|
+| `SSH_PRIVATE_KEY` | Clave privada SSH completa | `cat ~/.ssh/classic-library-key` |
+| `AWS_ACCESS_KEY_ID` | Credencial temporal del laboratorio | AWS Academy > AWS Details |
+| `AWS_SECRET_ACCESS_KEY` | Credencial temporal del laboratorio | AWS Academy > AWS Details |
+| `AWS_SESSION_TOKEN` | Token temporal del laboratorio | AWS Academy > AWS Details |
+
+### Secrets que YA NO necesitas
+
+Terraform crea automaticamente: Cognito User Pool, App Client, Domain, API Gateway, Lambda.
+Los outputs se inyectan al EC2 durante el deploy.
+
+---
+
+## Flujo de trabajo con laboratorios AWS Academy
+
+Cada vez que inicias un laboratorio, las credenciales AWS cambian. Debes actualizarlas **antes** de cada deploy.
+
+### Opcion 1: GitHub CLI (recomendado)
+
+```bash
+gh secret set AWS_ACCESS_KEY_ID
+# Pegar: ASIA...
+
+gh secret set AWS_SECRET_ACCESS_KEY
+# Pegar: wJalr...
+
+gh secret set AWS_SESSION_TOKEN
+# Pegar: FwoG...
+```
+
+### Opcion 2: Interfaz de GitHub
+
+1. Repository > **Settings** > **Secrets and variables** > **Actions**
+2. Editar cada secret y pegar el nuevo valor
+
+### Opcion 3: Script automatizado
+
+```bash
+#!/bin/bash
+# update-secrets.sh - Ejecutar al inicio de cada laboratorio
+echo "Pega tu AWS_ACCESS_KEY_ID:"
+read -s AWS_KEY && gh secret set AWS_ACCESS_KEY_ID <<< "$AWS_KEY"
+
+echo "Pega tu AWS_SECRET_ACCESS_KEY:"
+read -s AWS_SECRET && gh secret set AWS_SECRET_ACCESS_KEY <<< "$AWS_SECRET"
+
+echo "Pega tu AWS_SESSION_TOKEN:"
+read -s AWS_TOKEN && gh secret set AWS_SESSION_TOKEN <<< "$AWS_TOKEN"
+
+echo "Secrets actualizados."
+```
+
+---
+
+## Primer Setup (una sola vez)
 
 ### 1. Generar clave SSH
 
@@ -22,22 +78,13 @@ El workflow despliega automáticamente:
 ssh-keygen -t rsa -b 4096 -f ~/.ssh/classic-library-key -N "" -C "classic-library-deploy"
 ```
 
-### 2. Configurar GitHub Secrets
+### 2. Configurar SSH_PRIVATE_KEY
 
-Ve a tu repository > Settings > Secrets and variables > Actions
+```bash
+gh secret set SSH_PRIVATE_KEY < ~/.ssh/classic-library-key
+```
 
-| Secret | Descripción | Ejemplo |
-|--------|-------------|---------|
-| `AWS_ACCESS_KEY_ID` | Credenciales AWS Academy | `ASIA...` |
-| `AWS_SECRET_ACCESS_KEY` | Credenciales AWS Academy | `wJalr...` |
-| `AWS_SESSION_TOKEN` | Token temporal AWS Academy | `FwoG...` |
-| `SSH_PRIVATE_KEY` | Clave privada SSH | `-----BEGIN OPENSSH...` |
-
-**Nota**: Los valores de Cognito (`VITE_COGNITO_*`) ya NO necesitan configurarse como secrets. Terraform los crea automáticamente y el workflow los injecta al deploy.
-
-### 3. Configurar credenciales AWS Academy
-
-Cada vez que inicias un laboratorio:
+### 3. Configurar credenciales del primer laboratorio
 
 ```bash
 gh secret set AWS_ACCESS_KEY_ID
@@ -45,11 +92,13 @@ gh secret set AWS_SECRET_ACCESS_KEY
 gh secret set AWS_SESSION_TOKEN
 ```
 
+---
+
 ## Despliegue
 
-### Deploy automático
+### Deploy automatico
 
-El workflow se ejecuta automáticamente al hacer push a `aws`:
+El workflow se ejecuta automaticamente al hacer push a `aws`:
 
 ```bash
 git push origin aws
@@ -59,152 +108,102 @@ git push origin aws
 
 Ve a GitHub > Actions > Desplegar en EC2 > Run workflow
 
-Selecciona una acción:
+Selecciona una accion:
 - `deploy`: Crear/actualizar infraestructura y desplegar
 - `plan`: Solo planificar cambios (sin aplicar)
 - `destroy`: Eliminar toda la infraestructura
 
+---
+
 ## Outputs de Terraform
 
-Después del deploy, Terraform exporta:
+Despues del deploy, Terraform exporta:
 
-| Output | Descripción |
+| Output | Descripcion |
 |--------|-------------|
-| `public_ip` | IP pública de la EC2 |
+| `public_ip` | IP publica de la EC2 |
 | `cognito_user_pool_id` | ID del User Pool |
 | `cognito_app_client_id` | ID del App Client |
 | `cognito_domain` | Dominio del hosted UI |
 | `api_gateway_url` | URL del API Gateway (prod) |
 | `api_gateway_url_dev` | URL del API Gateway (dev) |
 
+---
+
 ## Estructura de archivos
 
 ```
-├── .github/workflows/deploy.yml    # Workflow de CI/CD
-├── infra/
-│   ├── main.tf                     # EC2 + Security Group + Key Pair
-│   ├── cognito.tf                  # User Pool, App Client, Domain, Lambda trigger
-│   ├── lambda.tf                   # Lambda Pre Token Generation + IAM
-│   ├── api_gateway.tf              # REST API, Resources, Methods, CORS, Authorizer
-│   ├── variables.tf                # Variables de entrada
-│   ├── outputs.tf                  # Outputs de Terraform
-│   ├── user_data.sh                # Script de setup de la instancia
-│   ├── terraform.tfvars.example    # Ejemplo de variables
-│   └── lambda/
-│       └── pre_token_generation.py # Código Lambda
-├── backend/
-│   ├── Dockerfile.prod             # Dockerfile de producción
-│   └── ...
-├── frontend/
-│   ├── Dockerfile.prod             # Dockerfile de producción
-│   └── nginx.conf                  # Configuración Nginx
-└── docker-compose.prod.yml         # Compose de producción
+.github/workflows/deploy.yml    # Workflow de CI/CD
+infra/
+  main.tf                       # EC2 + Security Group + Key Pair
+  cognito.tf                    # User Pool, App Client, Domain, Lambda trigger
+  lambda.tf                     # Lambda Pre Token Generation + IAM
+  api_gateway.tf                # REST API, Resources, Methods, CORS, Authorizer
+  variables.tf                  # Variables de entrada
+  outputs.tf                    # Outputs de Terraform
+  user_data.sh                  # Script de setup de la instancia
+  lambda/pre_token_generation.py # Codigo Lambda
+backend/Dockerfile.prod
+frontend/Dockerfile.prod
+frontend/nginx.conf
+docker-compose.prod.yml
 ```
+
+---
 
 ## Arquitectura del Despliegue
 
 ```
 GitHub Actions
-    │
-    ├─→ Job 1: Infrastructure (Terraform)
-    │   ├─→ Crea EC2 + Security Group + Key Pair
-    │   ├─→ Crea Cognito User Pool + App Client + Domain
-    │   ├─→ Crea Lambda Pre Token Generation
-    │   └─→ Crea API Gateway REST + Resources + Authorizer
-    │
-    └─→ Job 2: Deploy Application
-        ├─→ Copia archivos al EC2
-        ├─→ Configura variables de entorno (Cognito, MongoDB)
-        ├─→ Ejecuta docker-compose
-        └─→ Health check
+    |
+    |-- Job 1: Infrastructure (Terraform)
+    |   |-- Crea EC2 + Security Group + Key Pair
+    |   |-- Crea Cognito User Pool + App Client + Domain
+    |   |-- Crea Lambda Pre Token Generation
+    |   +-- Crea API Gateway REST + Resources + Authorizer
+    |
+    +-- Job 2: Deploy Application
+        |-- Copia archivos al EC2 (SCP)
+        |-- Configura .env (Cognito, MongoDB, IP)
+        |-- Ejecuta docker-compose build + up
+        +-- Health check (/api/v1/health)
 ```
 
-## API Gateway
-
-El API Gateway expone la API en:
-
-```
-https://{api-id}.execute-api.us-east-1.amazonaws.com/prod/api/v1
-```
-
-Rutas configuradas:
-
-| Ruta | Métodos | Auth |
-|------|---------|------|
-| `/api/v1/books` | GET, POST, PUT, DELETE | NONE |
-| `/api/v1/books/{id}` | GET, PUT, DELETE | NONE |
-| `/api/v1/authors` | GET, POST, PUT, DELETE | NONE |
-| `/api/v1/authors/{id}` | GET, PUT, DELETE | NONE |
-| `/api/v1/authors/{id}/books` | GET | NONE |
-| `/api/v1/auth/me` | GET | Cognito JWT |
-| `/api/v1/health` | GET | NONE |
-
-**Nota**: El authorizer Cognito está configurado en `auth/me`. Los métodos protegidos se pueden habilitar cambiando `authorization = "NONE"` a `authorization = "COGNITO_USER_POOLS"` en `infra/api_gateway.tf`.
-
-## Cognito
-
-- **Hosted UI**: `https://{domain}.auth.us-east-1.amazoncognito.com`
-- **Login**: Email + password
-- **Custom claims**: `custom:admin`, `custom:permissions`
-- **Lambda**: Pre Token Generation inyecta claims en el JWT
-
-### Google Identity Provider (manual)
-
-Google IdP requiere configuración manual en Google Cloud Console:
-
-1. Crear OAuth 2.0 Client ID en Google Cloud
-2. Configurar Cognito como trusted provider
-3. Asociar al User Pool
-
-Ver `docs/aws-setup.md` para instrucciones detalladas.
-
-## Comandos Útiles
-
-```bash
-# Conectarse a la instancia
-ssh -i ~/.ssh/classic-library-key ec2-user@<IP>
-
-# Ver logs en la instancia
-docker compose -f /app/docker-compose.prod.yml logs -f
-
-# Reiniciar servicios
-docker compose -f /app/docker-compose.prod.yml restart
-```
+---
 
 ## Variables de Terraform
 
-| Variable | Default | Descripción |
+| Variable | Default | Descripcion |
 |----------|---------|-------------|
-| `aws_region` | `us-east-1` | Región AWS |
+| `aws_region` | `us-east-1` | Region AWS |
 | `project_name` | `classic-library` | Nombre del proyecto |
 | `instance_type` | `t2.micro` | Tipo de instancia EC2 |
-| `admin_email` | `admin@example.com` | Email del admin |
+| `admin_email` | `admin@example.com` | Email del admin Cognito |
 | `admin_temp_password` | `Admin123!` | Password temporal del admin |
 | `callback_urls` | `["http://localhost:5173/callback"]` | OAuth callbacks |
 | `logout_urls` | `["http://localhost:5173/"]` | OAuth logout URLs |
 
+---
+
 ## Troubleshooting
 
-### El workflow falla al crear infraestructura
+### Workflow falla en "Limpiar recursos AWS existentes"
 
-- Verifica que las credenciales de AWS Academy sean válidas
-- Asegúrate de que el laboratorio esté activo
+- Las credenciales AWS Academy expiraron o el laboratorio termino
+- Actualizar secrets con `gh secret set AWS_ACCESS_KEY_ID` etc.
 
-### La aplicación no responde
+### Workflow falla en Terraform Apply
 
-- SSH a la instancia y verifica los contenedores:
-  ```bash
-  docker ps
-  docker compose -f /app/docker-compose.prod.yml logs
-  ```
+- Verificar que `terraform validate` pase localmente
+- Revisar si hay recursos huérfanos: `aws ec2 describe-instances --filters "Name=tag:Name,Values=classic-library-ec2"`
 
-### Error de conexión a MongoDB
+### Frontend no carga (pantalla blanca)
 
-- MongoDB corre localmente en el EC2 dentro del contenedor `mongodb`
-- Verifica que esté corriendo: `docker ps | grep mongodb`
-- Reinicia si es necesario: `docker compose -f /app/docker-compose.prod.yml restart mongodb`
+- Verificar que `VITE_API_URL` este embebido en el build
+- SSH y revisar: `docker exec frontend grep -r 'api/v1' /usr/share/nginx/html/assets/`
 
-### API Gateway retorna 403
+### API no responde
 
-- Verificar que el JWT sea válido y no esté expirado
-- Verificar que el authorizer esté configurado correctamente
+- SSH y verificar contenedores: `docker ps`
+- Verificar logs: `docker compose -f /app/docker-compose.prod.yml logs backend`
+- Verificar MongoDB: `docker ps | grep mongodb`

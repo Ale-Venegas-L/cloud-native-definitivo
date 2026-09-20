@@ -102,9 +102,7 @@ jobs:
         working-directory: infra
         run: |
           terraform apply -auto-approve \
-            -var="ssh_public_key=${{ steps.ssh.outputs.public_key }}" \
-            -var="callback_urls=[\"http://${{ github.event.repository.html_url | replace('https://', '') }}/callback\"]" \
-            -var="logout_urls=[\"http://${{ github.event.repository.html_url | replace('https://', '') }}/\"]"
+            -var="ssh_public_key=${{ steps.ssh.outputs.public_key }}"
           echo "public_ip=$(terraform output -raw public_ip)" >> $GITHUB_OUTPUT
           echo "instance_id=$(terraform output -raw instance_id)" >> $GITHUB_OUTPUT
           echo "cognito_user_pool_id=$(terraform output -raw cognito_user_pool_id)" >> $GITHUB_OUTPUT
