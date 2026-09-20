@@ -32,11 +32,14 @@ jobs:
 
       - name: Derivar clave pública SSH
         id: ssh
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy-key.pem
+          printf '%s' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy-key.pem
           chmod 600 ~/.ssh/deploy-key.pem
-          echo "public_key=$(ssh-keygen -y -f ~/.ssh/deploy-key.pem)" >> $GITHUB_OUTPUT
+          ssh-keygen -y -f ~/.ssh/deploy-key.pem > ~/.ssh/deploy-key.pub
+          echo "public_key=$(cat ~/.ssh/deploy-key.pub)" >> $GITHUB_OUTPUT
 
       - name: Configurar credenciales AWS
         uses: aws-actions/configure-aws-credentials@v4
@@ -92,12 +95,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configurar clave SSH
+        id: ssh
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/${{ env.PROJECT_NAME }}-key.pem
+          printf '%s' "$SSH_PRIVATE_KEY" > ~/.ssh/${{ env.PROJECT_NAME }}-key.pem
           chmod 600 ~/.ssh/${{ env.PROJECT_NAME }}-key.pem
-          echo "ssh_public_key=$(ssh-keygen -y -f ~/.ssh/${{ env.PROJECT_NAME }}-key.pem)" >> $GITHUB_OUTPUT
-        id: ssh
 
       - name: Esperar que la instancia esté lista
         run: |
