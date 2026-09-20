@@ -31,8 +31,8 @@ async function signOut() { await logout(); await router.replace('/') }
     </nav>
     <div class="border-t border-rule px-4 py-4">
       <div class="flex items-center gap-3">
-        <img v-if="user?.photoURL" :src="user.photoURL" alt="" class="h-9 w-9 rounded-full" referrerpolicy="no-referrer">
-        <div class="min-w-0 flex-1"><p class="truncate text-sm font-medium text-ink">{{ user?.displayName || 'Administrador' }}</p><p class="truncate text-xs text-ink-3">{{ user?.email }}</p></div>
+        <img v-if="user?.picture" :src="user.picture" alt="" class="h-9 w-9 rounded-full" referrerpolicy="no-referrer">
+        <div class="min-w-0 flex-1"><p class="truncate text-sm font-medium text-ink">{{ user?.name || 'Administrador' }}</p><p class="truncate text-xs text-ink-3">{{ user?.email }}</p></div>
         <ThemeToggle />
       </div>
       <button type="button" class="mt-3 min-h-11 w-full rounded-md border border-rule text-sm font-medium text-ink-2 hover:bg-paper-3" @click="signOut">Cerrar sesión</button>

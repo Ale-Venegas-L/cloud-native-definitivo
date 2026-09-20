@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { authState, initializeAuth, handleCallback } from '../composables/useAuth'
+import { authState, initializeAuth } from '../composables/useAuth'
 
 const router = createRouter({
   history: createWebHistory(),

@@ -1,6 +1,5 @@
 import { computed, reactive } from 'vue'
 import {
-  getCognitoConfig,
   getCognitoLoginUrl,
   getCognitoLogoutUrl,
   exchangeCodeForTokens,
