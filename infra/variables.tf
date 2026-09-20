@@ -4,6 +4,12 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
+variable "ami_id" {
+  description = "Amazon Linux 2023 AMI ID"
+  type        = string
+  default     = "ami-09179a962fadf762b"
+}
+
 variable "project_name" {
   description = "Project name for resource naming"
   type        = string

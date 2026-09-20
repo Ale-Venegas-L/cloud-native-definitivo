@@ -148,17 +148,21 @@ resource "aws_api_gateway_integration" "integrations" {
   }
 }
 
+locals {
+  cors_resources = {
+    "v1"               = aws_api_gateway_resource.v1.id
+    "books"            = aws_api_gateway_resource.books.id
+    "books_id"         = aws_api_gateway_resource.books_id.id
+    "authors"          = aws_api_gateway_resource.authors.id
+    "authors_id"       = aws_api_gateway_resource.authors_id.id
+    "authors_id_books" = aws_api_gateway_resource.authors_id_books.id
+    "auth_me"          = aws_api_gateway_resource.auth_me.id
+    "health"           = aws_api_gateway_resource.health.id
+  }
+}
+
 resource "aws_api_gateway_method" "options" {
-  for_each = toset([
-    aws_api_gateway_resource.books.id,
-    aws_api_gateway_resource.books_id.id,
-    aws_api_gateway_resource.authors.id,
-    aws_api_gateway_resource.authors_id.id,
-    aws_api_gateway_resource.authors_id_books.id,
-    aws_api_gateway_resource.auth_me.id,
-    aws_api_gateway_resource.health.id,
-    aws_api_gateway_resource.v1.id,
-  ])
+  for_each = local.cors_resources
 
   rest_api_id   = aws_api_gateway_rest_api.main.id
   resource_id   = each.value
@@ -167,16 +171,7 @@ resource "aws_api_gateway_method" "options" {
 }
 
 resource "aws_api_gateway_integration" "options" {
-  for_each = toset([
-    aws_api_gateway_resource.books.id,
-    aws_api_gateway_resource.books_id.id,
-    aws_api_gateway_resource.authors.id,
-    aws_api_gateway_resource.authors_id.id,
-    aws_api_gateway_resource.authors_id_books.id,
-    aws_api_gateway_resource.auth_me.id,
-    aws_api_gateway_resource.health.id,
-    aws_api_gateway_resource.v1.id,
-  ])
+  for_each = local.cors_resources
 
   rest_api_id = aws_api_gateway_rest_api.main.id
   resource_id = each.value
@@ -189,16 +184,7 @@ resource "aws_api_gateway_integration" "options" {
 }
 
 resource "aws_api_gateway_method_response" "options_200" {
-  for_each = toset([
-    aws_api_gateway_resource.books.id,
-    aws_api_gateway_resource.books_id.id,
-    aws_api_gateway_resource.authors.id,
-    aws_api_gateway_resource.authors_id.id,
-    aws_api_gateway_resource.authors_id_books.id,
-    aws_api_gateway_resource.auth_me.id,
-    aws_api_gateway_resource.health.id,
-    aws_api_gateway_resource.v1.id,
-  ])
+  for_each = local.cors_resources
 
   rest_api_id = aws_api_gateway_rest_api.main.id
   resource_id = each.value
@@ -217,16 +203,7 @@ resource "aws_api_gateway_method_response" "options_200" {
 }
 
 resource "aws_api_gateway_integration_response" "options_200" {
-  for_each = toset([
-    aws_api_gateway_resource.books.id,
-    aws_api_gateway_resource.books_id.id,
-    aws_api_gateway_resource.authors.id,
-    aws_api_gateway_resource.authors_id.id,
-    aws_api_gateway_resource.authors_id_books.id,
-    aws_api_gateway_resource.auth_me.id,
-    aws_api_gateway_resource.health.id,
-    aws_api_gateway_resource.v1.id,
-  ])
+  for_each = local.cors_resources
 
   rest_api_id = aws_api_gateway_rest_api.main.id
   resource_id = each.value
