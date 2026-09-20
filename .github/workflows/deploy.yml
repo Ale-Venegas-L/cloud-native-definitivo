@@ -126,7 +126,14 @@ jobs:
       - name: Esperar que la instancia esté lista
         run: |
           echo "Esperando a que la instancia y user_data completen..."
-          sleep 45
+          sleep 60
+
+      - name: Crear directorio /app
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+            -i ~/.ssh/${{ env.PROJECT_NAME }}-key.pem \
+            ec2-user@${{ needs.infrastructure.outputs.instance_ip }} \
+            "sudo mkdir -p /app && sudo chown ec2-user:ec2-user /app"
 
       - name: Copiar archivos a EC2
         run: |
