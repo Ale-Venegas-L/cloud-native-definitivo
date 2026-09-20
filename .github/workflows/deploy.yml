@@ -30,6 +30,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Derive SSH public key
+        id: ssh
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy-key.pem
+          chmod 600 ~/.ssh/deploy-key.pem
+          echo "public_key=$(ssh-keygen -y -f ~/.ssh/deploy-key.pem)" >> $GITHUB_OUTPUT
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -52,7 +60,7 @@ jobs:
         working-directory: infra
         run: |
           terraform plan \
-            -var="ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}" \
+            -var="ssh_public_key=${{ steps.ssh.outputs.public_key }}" \
             -out=tfplan \
             -input=false
 
@@ -72,7 +80,7 @@ jobs:
         if: github.event.inputs.action == 'destroy'
         working-directory: infra
         run: terraform destroy -auto-approve \
-          -var="ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}"
+          -var="ssh_public_key=${{ steps.ssh.outputs.public_key }}"
 
   deploy:
     name: Deploy Application
@@ -88,6 +96,8 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/${{ env.PROJECT_NAME }}-key.pem
           chmod 600 ~/.ssh/${{ env.PROJECT_NAME }}-key.pem
+          echo "ssh_public_key=$(ssh-keygen -y -f ~/.ssh/${{ env.PROJECT_NAME }}-key.pem)" >> $GITHUB_OUTPUT
+        id: ssh
 
       - name: Wait for instance ready
         run: |
@@ -112,12 +122,9 @@ jobs:
             MONGO_DATABASE=classic_library
             PUBLIC_IP=${{ needs.infrastructure.outputs.instance_ip }}
             VITE_API_URL=http://${{ needs.infrastructure.outputs.instance_ip }}/api/v1
-            VITE_FIREBASE_API_KEY=${{ secrets.VITE_FIREBASE_API_KEY }}
-            VITE_FIREBASE_AUTH_DOMAIN=${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
-            VITE_FIREBASE_PROJECT_ID=${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-            VITE_FIREBASE_STORAGE_BUCKET=${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
-            VITE_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
-            VITE_FIREBASE_APP_ID=${{ secrets.VITE_FIREBASE_APP_ID }}
+            VITE_COGNITO_DOMAIN=${{ secrets.VITE_COGNITO_DOMAIN }}
+            VITE_COGNITO_CLIENT_ID=${{ secrets.VITE_COGNITO_CLIENT_ID }}
+            VITE_COGNITO_REGION=${{ secrets.VITE_COGNITO_REGION }}
             EOF
           ENVEOF
 

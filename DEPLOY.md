@@ -4,8 +4,7 @@
 
 1. Cuenta de AWS Academy con acceso a laboratorios
 2. GitHub repository con acceso a secrets
-3. MongoDB Atlas (o MongoDB local)
-4. Firebase项目 configurado
+3. AWS Cognito configurado (User Pool + App Client)
 
 ## Primer Setup
 
@@ -26,14 +25,10 @@ Agrega estos secrets:
 | `AWS_ACCESS_KEY_ID` | Credenciales AWS Academy | `ASIA...` |
 | `AWS_SECRET_ACCESS_KEY` | Credenciales AWS Academy | `wJalr...` |
 | `AWS_SESSION_TOKEN` | Token temporal AWS Academy | `FwoG...` |
-| `SSH_PUBLIC_KEY` | Clave pública SSH | `ssh-rsa AAAA...` |
 | `SSH_PRIVATE_KEY` | Clave privada SSH | `-----BEGIN OPENSSH...` |
-| `VITE_FIREBASE_API_KEY` | Firebase API Key | `AIza...` |
-| `VITE_FIREBASE_AUTH_DOMAIN` | Firebase Auth Domain | `project.firebaseapp.com` |
-| `VITE_FIREBASE_PROJECT_ID` | Firebase Project ID | `my-project` |
-| `VITE_FIREBASE_STORAGE_BUCKET` | Firebase Storage Bucket | `project.appspot.com` |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Firebase Sender ID | `123456789` |
-| `VITE_FIREBASE_APP_ID` | Firebase App ID | `1:123:web:abc` |
+| `VITE_COGNITO_DOMAIN` | Dominio Cognito Hosted UI | `classic-library.auth.us-east-1.amazoncognito.com` |
+| `VITE_COGNITO_CLIENT_ID` | App Client ID de Cognito | `xxxxxxxxxxxxxxxxxxxxxxxxxx` |
+| `VITE_COGNITO_REGION` | Región de Cognito | `us-east-1` |
 
 ### 3. Configurar credenciales AWS Academy
 
@@ -57,10 +52,10 @@ gh secret set AWS_SESSION_TOKEN
 
 ### Deploy automático
 
-El workflow se ejecuta automáticamente al hacer push a `main`:
+El workflow se ejecuta automáticamente al hacer push a `aws`:
 
 ```bash
-git push origin main
+git push origin aws
 ```
 
 ### Deploy manual
@@ -110,17 +105,17 @@ GitHub Actions
 
 ```bash
 # Conectarse a la instancia
-ssh -i ~/.ssh/classic-library-key.pem ec2-user@<IP>
+ssh -i ~/.ssh/classic-library-key ec2-user@<IP>
 
 # Ver logs en la instancia
-docker-compose -f /app/docker-compose.prod.yml logs -f
+docker compose -f /app/docker-compose.prod.yml logs -f
 
 # Reiniciar servicios
-docker-compose -f /app/docker-compose.prod.yml restart
+docker compose -f /app/docker-compose.prod.yml restart
 
 # Actualizar deploy
-cd /app && docker-compose -f docker-compose.prod.yml pull
-docker-compose -f docker-compose.prod.yml up -d
+cd /app && docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
 ```
 
 ## Troubleshooting
@@ -135,10 +130,11 @@ docker-compose -f docker-compose.prod.yml up -d
 - SSH a la instancia y verifica los contenedores:
   ```bash
   docker ps
-  docker-compose -f /app/docker-compose.prod.yml logs
+  docker compose -f /app/docker-compose.prod.yml logs
   ```
 
 ### Error de conexión a MongoDB
 
-- Verifica que `MONGO_URI` sea correcto
-- Asegúrate de que MongoDB Atlas permita conexiones desde la IP de EC2
+- MongoDB corre localmente en el EC2 dentro del contenedor `mongodb`
+- Verifica que esté corriendo: `docker ps | grep mongodb`
+- Reinicia si es necesario: `docker compose -f /app/docker-compose.prod.yml restart mongodb`

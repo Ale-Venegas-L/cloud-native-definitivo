@@ -80,8 +80,8 @@ Ver `docs/aws-setup.md` para la guía paso a paso de configuración en AWS.
 |---|---|
 | AWS API Gateway | Configuración manual pendiente (ver `docs/aws-setup.md`) |
 | Cognito User Pool | Configuración manual pendiente (ver `docs/aws-setup.md`) |
-| Despliegue cloud | No implementado — solo ejecución local vía docker-compose |
-| CI/CD | No configurado — `.github/workflows/` vacío |
+| Despliegue cloud | Implementado — EC2 via Terraform + GitHub Actions |
+| CI/CD | Implementado — `.github/workflows/deploy.yml` (push a `aws`) |
 | WAF | No implementado |
 
 ### Roadmap
