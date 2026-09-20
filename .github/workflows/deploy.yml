@@ -1,4 +1,4 @@
-name: Deploy to EC2
+name: Desplegar en EC2
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: 'Action to perform'
+        description: 'Acción a realizar'
         required: true
         default: 'deploy'
         type: choice
@@ -21,7 +21,7 @@ env:
 
 jobs:
   infrastructure:
-    name: Manage Infrastructure
+    name: Gestionar Infraestructura
     runs-on: ubuntu-latest
     outputs:
       instance_ip: ${{ steps.terraform.outputs.public_ip }}
@@ -30,7 +30,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Derive SSH public key
+      - name: Derivar clave pública SSH
         id: ssh
         run: |
           mkdir -p ~/.ssh
@@ -38,7 +38,7 @@ jobs:
           chmod 600 ~/.ssh/deploy-key.pem
           echo "public_key=$(ssh-keygen -y -f ~/.ssh/deploy-key.pem)" >> $GITHUB_OUTPUT
 
-      - name: Configure AWS Credentials
+      - name: Configurar credenciales AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -46,16 +46,16 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Setup Terraform
+      - name: Instalar Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.9"
 
-      - name: Terraform Init
+      - name: Inicializar Terraform
         working-directory: infra
         run: terraform init
 
-      - name: Terraform Plan
+      - name: Plan de Terraform
         id: plan
         working-directory: infra
         run: |
@@ -64,26 +64,26 @@ jobs:
             -out=tfplan \
             -input=false
 
-      - name: Terraform Apply
+      - name: Aplicar Terraform
         if: github.event.inputs.action != 'destroy'
         working-directory: infra
         run: terraform apply -input=false tfplan
 
-      - name: Terraform Output
+      - name: Salida de Terraform
         id: terraform
         working-directory: infra
         run: |
           echo "public_ip=$(terraform output -raw public_ip)" >> $GITHUB_OUTPUT
           echo "instance_id=$(terraform output -raw instance_id)" >> $GITHUB_OUTPUT
 
-      - name: Terraform Destroy
+      - name: Destruir Terraform
         if: github.event.inputs.action == 'destroy'
         working-directory: infra
         run: terraform destroy -auto-approve \
           -var="ssh_public_key=${{ steps.ssh.outputs.public_key }}"
 
   deploy:
-    name: Deploy Application
+    name: Desplegar Aplicación
     runs-on: ubuntu-latest
     needs: infrastructure
     if: github.event.inputs.action != 'destroy'
@@ -91,7 +91,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup SSH Key
+      - name: Configurar clave SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/${{ env.PROJECT_NAME }}-key.pem
@@ -99,19 +99,19 @@ jobs:
           echo "ssh_public_key=$(ssh-keygen -y -f ~/.ssh/${{ env.PROJECT_NAME }}-key.pem)" >> $GITHUB_OUTPUT
         id: ssh
 
-      - name: Wait for instance ready
+      - name: Esperar que la instancia esté lista
         run: |
-          echo "Waiting for instance and user_data to complete..."
+          echo "Esperando a que la instancia y user_data completen..."
           sleep 45
 
-      - name: Copy files to EC2
+      - name: Copiar archivos a EC2
         run: |
           scp -o StrictHostKeyChecking=no \
             -i ~/.ssh/${{ env.PROJECT_NAME }}-key.pem \
             docker-compose.prod.yml backend/ frontend/ \
             ec2-user@${{ needs.infrastructure.outputs.instance_ip }}:/app/
 
-      - name: Setup remote environment
+      - name: Configurar entorno remoto
         run: |
           ssh -o StrictHostKeyChecking=no \
             -i ~/.ssh/${{ env.PROJECT_NAME }}-key.pem \
@@ -128,7 +128,7 @@ jobs:
             EOF
           ENVEOF
 
-      - name: Deploy with Docker Compose
+      - name: Desplegar con Docker Compose
         run: |
           ssh -o StrictHostKeyChecking=no \
             -i ~/.ssh/${{ env.PROJECT_NAME }}-key.pem \
@@ -139,25 +139,25 @@ jobs:
             docker compose -f docker-compose.prod.yml up -d
           DEPLOYEOF
 
-      - name: Health check
+      - name: Verificación de salud
         run: |
-          echo "Waiting for services to start..."
+          echo "Esperando a que los servicios inicien..."
           for i in 1 2 3 4 5 6; do
             sleep 10
             if curl -sf http://${{ needs.infrastructure.outputs.instance_ip }}/api/v1/health; then
-              echo "Health check passed!"
+              echo "Verificación de salud exitosa"
               exit 0
             fi
-            echo "Attempt $i/6 failed, retrying..."
+            echo "Intento $i/6 fallido, reintentando..."
           done
-          echo "Health check failed after 6 attempts"
+          echo "Verificación de salud falló después de 6 intentos"
           exit 1
 
-      - name: Print deployment info
+      - name: Mostrar información del despliegue
         run: |
           echo "=========================================="
-          echo "Deployment complete!"
+          echo "¡Despliegue completado!"
           echo "=========================================="
-          echo "App URL: http://${{ needs.infrastructure.outputs.instance_ip }}"
-          echo "API URL: http://${{ needs.infrastructure.outputs.instance_ip }}/api/v1"
+          echo "URL de la app: http://${{ needs.infrastructure.outputs.instance_ip }}"
+          echo "URL de la API: http://${{ needs.infrastructure.outputs.instance_ip }}/api/v1"
           echo "=========================================="

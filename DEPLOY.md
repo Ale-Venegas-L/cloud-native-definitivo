@@ -52,7 +52,7 @@ gh secret set AWS_SESSION_TOKEN
 
 ### Deploy automático
 
-El workflow se ejecuta automáticamente al hacer push a `aws`:
+El workflow **Desplegar en EC2** se ejecuta automáticamente al hacer push a `aws`:
 
 ```bash
 git push origin aws
@@ -60,7 +60,7 @@ git push origin aws
 
 ### Deploy manual
 
-Ve a GitHub > Actions > Deploy to EC2 > Run workflow
+Ve a GitHub > Actions > Desplegar en EC2 > Run workflow
 
 Selecciona una acción:
 - `deploy`: Crear/actualizar infraestructura y desplegar

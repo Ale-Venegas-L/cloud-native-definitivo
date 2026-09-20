@@ -1,60 +1,60 @@
-# Classic Library delivery roadmap
+# Hoja de ruta de entrega - Classic Library
 
 ## Hito 1 - Fundación segura e identidad
 
-Status: in progress
+Estado: en progreso
 
-- [x] Introduce the `/api/v1` contract.
-- [x] Add the modular FastAPI authentication boundary.
-- [x] Protect all write operations with the admin role.
-- [x] Add Vue session state, route guards and authenticated API client.
-- [x] Add baseline authorization tests.
-- [x] Migrate from Firebase Authentication to AWS Cognito (ADR-002).
-- [x] Implement OAuth 2.0 Authorization Code + PKCE flow.
-- [x] Backend JWT verification via Cognito JWKS endpoint.
-- [x] Pre Token Generation Lambda for custom claims.
-- [ ] Configure Cognito User Pool and App Client in AWS Console.
-- [ ] Configure API Gateway REST API with JWT Authorizer.
-- [ ] Complete a real browser login smoke test with Cognito.
+- [x] Introducir el contrato `/api/v1`.
+- [x] Agregar el límite de autenticación modular de FastAPI.
+- [x] Proteger todas las operaciones de escritura con el rol admin.
+- [x] Agregar estado de sesión de Vue, guards de rutas y cliente API autenticado.
+- [x] Agregar pruebas base de autorización.
+- [x] Migrar de Firebase Authentication a AWS Cognito (ADR-002).
+- [x] Implementar flujo OAuth 2.0 Authorization Code + PKCE.
+- [x] Verificación JWT en backend vía endpoint JWKS de Cognito.
+- [x] Lambda de Pre Token Generation para claims personalizados.
+- [ ] Configurar Cognito User Pool y App Client en AWS Console.
+- [ ] Configurar API Gateway REST API con JWT Authorizer.
+- [ ] Completar prueba de smoke de login real en navegador con Cognito.
 
 ## Hito 1.5 - Experiencia de interfaz
 
-Status: complete
+Estado: completo
 
-- [x] Consolidate the editorial design system and responsive spacing.
-- [x] Add responsive public and administrative navigation.
-- [x] Add loading, error, empty and retry states.
-- [x] Redesign the home, catalog, authentication and authorization views.
-- [x] Add real covers, fallbacks, filters, sorting and book details.
-- [x] Add a responsive operational dashboard and mobile CRUD cards.
-- [x] Add destructive-action confirmation and complete content forms.
-- [x] Add persistent light/dark theme controls and accessibility refinements.
-- [x] Optimize and integrate the home hero as WebP.
+- [x] Consolidar el sistema de diseño editorial y espaciado responsivo.
+- [x] Agregar navegación pública y administrativa responsiva.
+- [x] Agregar estados de carga, error, vacío y reintento.
+- [x] Rediseñar vistas de inicio, catálogo, autenticación y autorización.
+- [x] Agregar portadas reales, fallbacks, filtros, ordenamiento y detalles de libro.
+- [x] Agregar panel operacional responsivo y tarjetas CRUD móvil.
+- [x] Agregar confirmación de acciones destructivas y formularios de contenido completos.
+- [x] Agregar controles de tema claro/oscuro persistentes y mejoras de accesibilidad.
+- [x] Optimizar e integrar el hero de inicio como WebP.
 
 ## Hito 2 - Integridad del dominio
 
-- Validate MongoDB identifiers without returning 500 errors.
-- Enforce book-author relationships.
-- Define author deletion policy.
-- Disable in-memory database fallback outside tests and explicit local development.
-- Add indexes, pagination and consistent error responses.
+- Validar identificadores de MongoDB sin devolver errores 500.
+- Forzar relaciones libro-autor.
+- Definir política de eliminación de autores.
+- Deshabilitar fallback de base de datos en memoria fuera de tests y desarrollo local explícito.
+- Agregar índices, paginación y respuestas de error consistentes.
 
 ## Hito 3 - Calidad y delivery
 
-- Add frontend component and route tests.
-- Expand backend unit and integration coverage.
-- Add linting, type checking and CI security gates.
-- Produce production container images and health/readiness checks.
+- Agregar tests de componentes y rutas del frontend.
+- Expandir cobertura de unit tests e integración del backend.
+- Agregar linting, type checking y gates de seguridad CI.
+- Producir imágenes de contenedor de producción y checks de salud/disponibilidad.
 
 ## Hito 4 - AWS API Gateway
 
-Status: in progress
+Estado: en progreso
 
-- [x] Select REST API plus JWT Authorizer via ADR-002.
-- [x] Migrate identity provider from Firebase to Cognito.
-- [ ] Create API Gateway REST API with proxy integration.
-- [ ] Configure CORS on API Gateway.
-- [ ] Configure IAM role for API Gateway → Backend invocation.
-- [ ] Validate Cognito issuer, audience, signature and expiry at the edge.
-- [ ] Add throttling, request validation, logs and metrics.
-- [ ] Add WAF using the architecture selected in the ADR.
+- [x] Seleccionar REST API más JWT Authorizer vía ADR-002.
+- [x] Migrar proveedor de identidad de Firebase a Cognito.
+- [ ] Crear API Gateway REST API con proxy integration.
+- [ ] Configurar CORS en API Gateway.
+- [ ] Configurar rol IAM para invocación API Gateway → Backend.
+- [ ] Validar issuer, audience, firma y expiración de Cognito en el edge.
+- [ ] Agregar throttling, validación de requests, logs y métricas.
+- [ ] Agregar WAF usando la arquitectura seleccionada en el ADR.
