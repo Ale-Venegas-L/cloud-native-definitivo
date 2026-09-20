@@ -15,6 +15,11 @@ mkdir -p /usr/local/lib/docker/cli-plugins
 curl -SL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$(uname -m)" -o /usr/local/lib/docker/cli-plugins/docker-compose
 chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 
+# Install Docker Buildx plugin
+mkdir -p /usr/libexec/docker/cli-plugins
+curl -SL "https://github.com/docker/buildx/releases/latest/download/buildx-linux-$(uname -m)" -o /usr/libexec/docker/cli-plugins/docker-buildx
+chmod +x /usr/libexec/docker/cli-plugins/docker-buildx
+
 # Install Git
 yum install -y git
 
