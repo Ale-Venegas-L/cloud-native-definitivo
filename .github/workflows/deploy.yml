@@ -66,6 +66,33 @@ jobs:
         with:
           terraform_version: "1.9"
 
+      - name: Limpiar recursos existentes
+        env:
+          AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}
+        run: |
+          echo "Eliminando instancia EC2 si existe..."
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=${{ env.PROJECT_NAME }}-ec2" \
+            --query "Reservations[].Instances[?State.Name=='running'].InstanceId[]" \
+            --output text 2>/dev/null || true)
+          if [ -n "$INSTANCE_ID" ]; then
+            aws ec2 terminate-instances --instance-ids $INSTANCE_ID
+            echo "Esperando que la instancia termine..."
+            aws ec2 wait instance-terminated --instance-ids $INSTANCE_ID
+          fi
+
+          echo "Eliminando key pair si existe..."
+          aws ec2 delete-key-pair --key-name ${{ env.PROJECT_NAME }}-key 2>/dev/null || true
+
+          echo "Eliminando security group si existe..."
+          SG_ID=$(aws ec2 describe-security-groups \
+            --filters "Name=group-name,Values=${{ env.PROJECT_NAME }}-sg" \
+            --query "SecurityGroups[].GroupId" \
+            --output text 2>/dev/null || true)
+          if [ -n "$SG_ID" ]; then
+            aws ec2 delete-security-group --group-id $SG_ID 2>/dev/null || true
+          fi
+
       - name: Inicializar Terraform
         working-directory: infra
         run: terraform init
@@ -133,7 +160,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no \
             -i ~/.ssh/${{ env.PROJECT_NAME }}-key.pem \
             ec2-user@${{ needs.infrastructure.outputs.instance_ip }} \
-            "sudo mkdir -p /app && sudo chown ec2-user:ec2-user /app"
+            "sudo mkdir -p /app && sudo chown -R ec2-user:ec2-user /app"
 
       - name: Copiar archivos a EC2
         run: |
