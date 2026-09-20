@@ -42,10 +42,13 @@ jobs:
             exit 1
           fi
           mkdir -p ~/.ssh
-          printf '%s' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy-key.pem
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy-key.pem
           chmod 600 ~/.ssh/deploy-key.pem
           if ! ssh-keygen -y -f ~/.ssh/deploy-key.pem > ~/.ssh/deploy-key.pub; then
-            echo "::error::SSH key inválida. Verifica que el secret SSH_PRIVATE_KEY contenga la clave completa"
+            echo "::error::SSH key inválida"
+            echo "Key length: ${#SSH_PRIVATE_KEY} chars"
+            echo "First line: $(echo "$SSH_PRIVATE_KEY" | head -1)"
+            echo "Last line: $(echo "$SSH_PRIVATE_KEY" | tail -1)"
             exit 1
           fi
           echo "public_key=$(cat ~/.ssh/deploy-key.pub)" >> $GITHUB_OUTPUT
@@ -113,7 +116,7 @@ jobs:
             exit 1
           fi
           mkdir -p ~/.ssh
-          printf '%s' "$SSH_PRIVATE_KEY" > ~/.ssh/${{ env.PROJECT_NAME }}-key.pem
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/${{ env.PROJECT_NAME }}-key.pem
           chmod 600 ~/.ssh/${{ env.PROJECT_NAME }}-key.pem
           if ! ssh-keygen -y -f ~/.ssh/${{ env.PROJECT_NAME }}-key.pem > /dev/null; then
             echo "::error::SSH key inválida"
