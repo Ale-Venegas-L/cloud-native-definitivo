@@ -155,18 +155,16 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no \
             -i ~/.ssh/${{ env.PROJECT_NAME }}-key.pem \
-            ec2-user@${{ needs.infrastructure.outputs.instance_ip }} << ENVEOF
-            cd /app
-            cat > .env << EOF
-            MONGO_URI=mongodb://admin:password@mongodb:27017/classic_library?authSource=admin
-            MONGO_DATABASE=classic_library
-            PUBLIC_IP=${{ needs.infrastructure.outputs.instance_ip }}
-            VITE_API_URL=http://${{ needs.infrastructure.outputs.instance_ip }}/api/v1
-            VITE_COGNITO_DOMAIN=${{ secrets.VITE_COGNITO_DOMAIN }}
-            VITE_COGNITO_CLIENT_ID=${{ secrets.VITE_COGNITO_CLIENT_ID }}
-            VITE_COGNITO_REGION=${{ secrets.VITE_COGNITO_REGION }}
-            EOF
-          ENVEOF
+            ec2-user@${{ needs.infrastructure.outputs.instance_ip }} \
+            "cd /app && printf '%s\n' \
+              'MONGO_URI=mongodb://admin:password@mongodb:27017/classic_library?authSource=admin' \
+              'MONGO_DATABASE=classic_library' \
+              'PUBLIC_IP=${{ needs.infrastructure.outputs.instance_ip }}' \
+              'VITE_API_URL=http://${{ needs.infrastructure.outputs.instance_ip }}/api/v1' \
+              'VITE_COGNITO_DOMAIN=${{ secrets.VITE_COGNITO_DOMAIN }}' \
+              'VITE_COGNITO_CLIENT_ID=${{ secrets.VITE_COGNITO_CLIENT_ID }}' \
+              'VITE_COGNITO_REGION=${{ secrets.VITE_COGNITO_REGION }}' \
+              > .env"
 
       - name: Desplegar con Docker Compose
         run: |
