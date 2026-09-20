@@ -69,15 +69,18 @@ jobs:
 
       - name: Limpiar recursos AWS existentes
         run: |
-          INSTANCE_ID=$(aws ec2 describe-instances \
-            --filters "Name=tag:Name,Values=${{ env.PROJECT_NAME }}-ec2" \
+          # Terminar instancias que usan el key pair o security group
+          INSTANCE_IDS=$(aws ec2 describe-instances \
+            --filters "Name=key-name,Values=${{ env.PROJECT_NAME }}-key" \
             "Name=instance-state-name,Values=running,stopped,pending" \
             --query "Reservations[].Instances[].InstanceId" \
             --output text 2>/dev/null) || true
-          if [ -n "$INSTANCE_ID" ]; then
-            echo "Terminando instancia: $INSTANCE_ID"
-            aws ec2 terminate-instances --instance-ids $INSTANCE_ID
-            aws ec2 wait instance-terminated --instance-ids $INSTANCE_ID
+          if [ -n "$INSTANCE_IDS" ]; then
+            echo "Terminando instancias: $INSTANCE_IDS"
+            aws ec2 terminate-instances --instance-ids $INSTANCE_IDS
+            aws ec2 wait instance-terminated --instance-ids $INSTANCE_IDS
+            echo "Esperando 30s para que AWS libere los recursos..."
+            sleep 30
           fi
 
           aws ec2 delete-key-pair --key-name ${{ env.PROJECT_NAME }}-key 2>/dev/null && \
