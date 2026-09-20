@@ -36,13 +36,13 @@ variable "ssh_public_key" {
 variable "callback_urls" {
   description = "OAuth callback URLs for Cognito"
   type        = list(string)
-  default     = ["http://localhost:5173/callback"]
+  default     = ["http://localhost:5173/callback", "https://d84l1y8p4kdic.cloudfront.net/callback"]
 }
 
 variable "logout_urls" {
   description = "OAuth logout URLs for Cognito"
   type        = list(string)
-  default     = ["http://localhost:5173/"]
+  default     = ["http://localhost:5173/", "https://d84l1y8p4kdic.cloudfront.net/"]
 }
 
 variable "admin_email" {
@@ -56,4 +56,22 @@ variable "admin_temp_password" {
   type        = string
   default     = "Admin123!"
   sensitive   = true
+}
+
+variable "existing_cognito_user_pool_id" {
+  description = "Existing Cognito User Pool ID (skip creation when set)"
+  type        = string
+  default     = ""
+}
+
+variable "existing_cognito_app_client_id" {
+  description = "Existing Cognito App Client ID"
+  type        = string
+  default     = ""
+}
+
+variable "existing_cognito_domain" {
+  description = "Existing Cognito hosted UI domain (e.g. myapp)"
+  type        = string
+  default     = ""
 }

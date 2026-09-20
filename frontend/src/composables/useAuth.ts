@@ -114,7 +114,7 @@ export async function loginWithCognito(): Promise<void> {
   state.error = null
   const verifier = generateCodeVerifier()
   const challenge = await generateCodeChallenge(verifier)
-  const stateParam = crypto.randomUUID()
+  const stateParam = crypto.randomUUID ? crypto.randomUUID() : generateCodeVerifier()
 
   localStorage.setItem(STORAGE_KEY_VERIFIER, verifier)
   localStorage.setItem(STORAGE_KEY_STATE, stateParam)

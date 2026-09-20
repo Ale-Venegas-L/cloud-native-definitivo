@@ -1,64 +1,38 @@
 # Classic Library
 
-Biblioteca web de literatura clásica. MVP full-stack desarrollado como proyecto académico.
+Biblioteca web de literatura clasica. MVP full-stack desarrollado como proyecto academico.
 
 ## Stack
 
-| Capa | Tecnología |
+| Capa | Tecnologia |
 |---|---|
 | Frontend | Vue 3.5, TypeScript 6, Vite 8, Tailwind CSS 4 |
 | Backend | Python 3.14, FastAPI, Pydantic, PyMongo |
 | Base de datos | MongoDB 7 |
-| Autenticación | AWS Cognito (OAuth 2.0 PKCE) |
-| API Gateway | AWS API Gateway REST |
+| Autenticacion | AWS Cognito (OAuth 2.0 PKCE) |
+| API Gateway | AWS API Gateway REST (Terraform) |
+| Infraestructura | AWS EC2 (Terraform) |
+| CI/CD | GitHub Actions |
 | Contenedores | Docker, Docker Compose |
 
 ## Arquitectura
 
 ```text
 Frontend (Vue 3)
-   │
-   │ OAuth 2.0 / PKCE
+   |
+   | OAuth 2.0 / PKCE
    v
 AWS Cognito (User Pool)
-   │
-   │ JWT
+   |
+   | JWT
    v
-AWS API Gateway
-   │
-   │ IAM + JWT Authorizer
-   v
-FastAPI REST API (/api/v1) → MongoDB
+EC2 Instance
+   |-- Frontend (nginx:80)
+   |-- Backend (FastAPI:8000) --> MongoDB
+   +-- API Gateway REST --> Backend
 ```
 
-Módulos del backend: `auth`, `books`, `authors`. Cada módulo sigue el patrón router → service → repository.
-
-## Requisitos — Prueba 1
-
-### Criterios de evaluación
-
-1. Creación de instancia de API Manager en funcionamiento en la plataforma cloud.
-2. Configuración del API Manager para llamar a los endpoints del backend.
-3. Frontend consume endpoints a través del API Manager correctamente configurado.
-4. API Manager valida JWT: rechaza peticiones inválidas, acepta las correctas.
-5. Creación del tenant en IDaaS con usuarios registrados.
-6. Frontend utiliza OAuth 2.0/OpenID Connect para iniciar sesión y obtener JWT válido.
-7. Backend y frontend desplegados, activos e integrados en la nube.
-
-### Indicadores de evaluación
-
-| Indicador | Descripción |
-|---|---|
-| Rutas API Manager | Todas las rutas creadas y dirigidas a los microservicios correspondientes |
-| CORS API Manager | Configurado de forma segura, orígenes permitidos definidos correctamente |
-| Tenant IDaaS | Tenant creado con usuarios de prueba, roles, políticas y parámetros |
-| Aplicación IDaaS | Registrada con clientId, URIs de redirección, roles y scopes |
-| Flujo usuario | Registro e inicio de sesión funcional, tokens con claims esperados |
-| OIDC PKCE | Authorization Code con PKCE: code verifier, code challenge, state, nonce |
-| Validación JWT API Manager | Todas las rutas aplican validación JWT, verifica issuer y audience |
-| Evidencia de rutas | Llamadas con y sin token, respuestas 200/401/403 coherentes |
-
-Ver `docs/aws-setup.md` para la guía paso a paso de configuración en AWS.
+Modulos del backend: `auth`, `books`, `authors`. Cada modulo sigue el patron router -> service -> repository.
 
 ## Estado actual
 
@@ -66,46 +40,60 @@ Ver `docs/aws-setup.md` para la guía paso a paso de configuración en AWS.
 
 | Componente | Estado |
 |---|---|
-| Frontend Vue 3 | Completo — catálogo público, admin CRUD, auth Cognito PKCE |
-| Backend FastAPI | Completo — módulos auth/books/authors, CORS, health |
-| MongoDB | Completo — conexión, seed data, mongomock fallback |
-| Cognito JWT verification | Completo — JWKS, issuer/audience validation, custom claims |
-| Docker Compose | Completo — 3 servicios (mongodb, backend, frontend) |
-| Tests backend | Completos — pytest + coverage |
-| Tests frontend | Completos — Vitest + Vue Test Utils |
-| AWS API Gateway | Implementado — Terraform REST API + CORS + Authorizer |
-| Cognito User Pool | Implementado — Terraform con Lambda Pre Token Generation |
-| Despliegue cloud | Implementado — EC2 via Terraform + GitHub Actions |
-| CI/CD | Implementado — `.github/workflows/deploy.yml` (push a `aws`) |
+| Frontend Vue 3 | Completo - catalogo publico, admin CRUD, auth Cognito PKCE |
+| Backend FastAPI | Completo - modulos auth/books/authors, CORS, health |
+| MongoDB | Completo - conexion, seed data, mongomock fallback |
+| Cognito JWT verification | Completo - JWKS, issuer/audience validation, custom claims |
+| Docker Compose | Completo - 3 servicios (mongodb, backend, frontend) |
+| Tests backend | Completos - pytest + coverage |
+| Tests frontend | Completos - Vitest + Vue Test Utils |
+| AWS API Gateway | Implementado - Terraform REST API + CORS + Authorizer |
+| Despliegue cloud | Implementado - EC2 via Terraform + GitHub Actions |
+| CI/CD | Implementado - `.github/workflows/deploy.yml` (push a `aws`) |
+| SHA-256 polyfill | Implementado - crypto.subtle fallback para HTTP |
 
 ### Pendiente
 
 | Componente | Estado |
 |---|---|
-| Google Identity Provider | Requiere setup manual en Google Cloud Console (ver `docs/aws-setup.md`) |
+| Google Identity Provider | Requiere setup manual en Google Cloud Console |
+| Lambda Pre Token Generation | Requiere permisos IAM (habilitar con `enable_cognito=true`) |
 | WAF | No implementado |
 
-### Roadmap
+## Requisitos - Prueba 1
 
-Ver `docs/ROADMAP.md` para el detalle de hitos.
+### Criterios de evaluacion
 
-| Hito | Descripción | Estado |
-|---|---|---|
-| Hito 1 | Fundación segura e identidad | En progreso |
-| Hito 1.5 | Experiencia de interfaz | Completo |
-| Hito 2 | Integridad del dominio | Planificado |
-| Hito 3 | Calidad y delivery | Planificado |
-| Hito 4 | AWS API Gateway | En progreso |
+1. Creacion de instancia de API Manager en funcionamiento en la plataforma cloud.
+2. Configuracion del API Manager para llamar a los endpoints del backend.
+3. Frontend consume endpoints a traves del API Manager correctamente configurado.
+4. API Manager valida JWT: rechaza peticiones invalidas, acepta las correctas.
+5. Creacion del tenant en IDaaS con usuarios registrados.
+6. Frontend utiliza OAuth 2.0/OpenID Connect para iniciar sesion y obtener JWT valido.
+7. Backend y frontend desplegados, activos e integrados en la nube.
+
+### Indicadores de evaluacion
+
+| Indicador | Descripcion |
+|---|---|
+| Rutas API Manager | Todas las rutas creadas y dirigidas a los microservicios correspondientes |
+| CORS API Manager | Configurado de forma segura, origenes permitidos definidos correctamente |
+| Tenant IDaaS | Tenant creado con usuarios de prueba, roles, politicas y parametros |
+| Aplicacion IDaaS | Registrada con clientId, URIs de redireccion, roles y scopes |
+| Flujo usuario | Registro e inicio de sesion funcional, tokens con claims esperados |
+| OIDC PKCE | Authorization Code con PKCE: code verifier, code challenge, state, nonce |
+| Validacion JWT API Manager | Todas las rutas aplican validacion JWT, verifica issuer y audience |
+| Evidencia de rutas | Llamadas con y sin token, respuestas 200/401/403 coherentes |
 
 ## Decisiones de arquitectura
 
-- `docs/architecture/ADR-001-firebase-authentication.md` — Decisión original (Firebase)
-- `docs/architecture/ADR-002-cognito-migration.md` — Migración a Cognito
+- `docs/architecture/ADR-001-firebase-authentication.md` - Decision original (Firebase)
+- `docs/architecture/ADR-002-cognito-migration.md` - Migracion a Cognito
 
 ## Estructura del proyecto
 
 ```text
-MVP-AWS-DESARROLLO-CLOUD-NATIVE-I_004D-/
+cloud-native-definitivo/
 ├── backend/                    # FastAPI REST API
 │   ├── app/
 │   │   ├── main.py             # Entry point, CORS, lifespan
@@ -114,7 +102,7 @@ MVP-AWS-DESARROLLO-CLOUD-NATIVE-I_004D-/
 │   │   └── shared/             # Seed data
 │   ├── scripts/                # set_admin.py
 │   ├── tests/                  # pytest
-│   ├── Dockerfile
+│   ├── Dockerfile.prod
 │   └── requirements.txt
 │
 ├── frontend/                   # Vue 3 SPA
@@ -123,103 +111,99 @@ MVP-AWS-DESARROLLO-CLOUD-NATIVE-I_004D-/
 │   │   ├── components/         # Pages, UI, views, modals
 │   │   ├── services/           # api.ts (HTTP client)
 │   │   ├── router/             # Rutas + guards
-│   │   ├── lib/                # cognito.ts
+│   │   ├── lib/                # cognito.ts (SHA-256 polyfill incluido)
 │   │   └── types/              # domain.ts
-│   ├── Dockerfile
+│   ├── Dockerfile.prod
 │   └── package.json
 │
+├── infra/                      # Terraform
+│   ├── main.tf                 # EC2 + Security Group + Key Pair
+│   ├── cognito.tf              # User Pool, App Client (opcional)
+│   ├── lambda.tf               # Lambda Pre Token Generation (opcional)
+│   ├── api_gateway.tf          # REST API + CORS + Authorizer
+│   ├── variables.tf            # Variables de entrada
+│   ├── outputs.tf              # Outputs de Terraform
+│   ├── user_data.sh            # Setup de la instancia
+│   └── lambda/                 # Codigo Lambda
+│
 ├── docs/
-│   ├── ROADMAP.md
-│   ├── aws-setup.md            # Guía configuración AWS
+│   ├── aws-setup.md            # Guia configuracion AWS
 │   └── architecture/
-├── design/                     # Assets de diseño
-├── docker-compose.yml
-└── .env.example
+│
+├── .github/workflows/deploy.yml  # CI/CD
+├── docker-compose.prod.yml
+└── DEPLOY.md                   # Documentacion de deploy
 ```
 
-## Arranque rápido
+## Arranque rapido
 
 ### Requisitos
 
 - Git, Python 3.14+, Node.js 22+, Docker Desktop
-- AWS Console access (para configurar Cognito y API Gateway)
+- AWS Academy account (para Cognito + EC2)
 
-### 1. Configurar AWS
+### 1. Configurar secrets de GitHub
 
-Seguir `docs/aws-setup.md` para crear:
-- Cognito User Pool + App Client
-- API Gateway REST API
-- Lambda Pre Token Generation
+Ver `DEPLOY.md` para la guia completa. Resumen rapido:
 
-### 2. Variables de entorno
+```bash
+# SSH
+gh secret set SSH_PRIVATE_KEY < ~/.ssh/classic-library-key
+
+# AWS (cada laboratorio)
+gh secret set AWS_ACCESS_KEY_ID
+gh secret set AWS_SECRET_ACCESS_KEY
+gh secret set AWS_SESSION_TOKEN
+
+# Cognito (valores fijos)
+gh secret set COGNITO_USER_POOL_ID <<< "us-east-1_GPg9HQGJP"
+gh secret set COGNITO_APP_CLIENT_ID <<< "6e10hnmqf023ioa06qo72nejbd"
+gh secret set COGNITO_DOMAIN <<< "us-east-1gpg9hqgjp"
+```
+
+### 2. Deploy
+
+```bash
+git push origin aws
+```
+
+### 3. Variables de entorno (desarrollo local)
 
 ```bash
 cp .env.example .env
-# Completar con valores de AWS
-```
-
-### 3. Docker Compose
-
-```bash
-docker compose up --build
-```
-
-| Servicio | URL |
-|---|---|
-| Frontend | http://localhost:5173 |
-| Backend | http://localhost:8000 |
-| Swagger | http://localhost:8000/docs |
-| MongoDB | mongodb://localhost:27017 |
-
-### 4. Sin Docker
-
-**Backend:**
-
-```bash
-cd backend
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-fastapi dev app/main.py
-```
-
-**Frontend:**
-
-```bash
-cd frontend
-npm install
-npm run dev
+# Completar con valores de Cognito
 ```
 
 ## Variables de entorno
 
-Copiar `.env.example` y completar:
+### Backend (.env)
 
 ```env
-# Backend
-APP_NAME=Classic Library API
-APP_ENV=development
 MONGO_URI=mongodb://mongodb:27017
 MONGO_DATABASE=classic_library
 FRONTEND_URL=http://localhost:5173
 COGNITO_REGION=us-east-1
-COGNITO_USER_POOL_ID=us-east-1_XXXXXXXXX
-COGNITO_APP_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
+COGNITO_USER_POOL_ID=us-east-1_GPg9HQGJP
+COGNITO_APP_CLIENT_ID=6e10hnmqf023ioa06qo72nejbd
+```
 
-# Frontend
+### Frontend (.env)
+
+```env
 VITE_API_URL=http://localhost:8000/api/v1
-VITE_COGNITO_DOMAIN=classic-library.auth.us-east-1.amazoncognito.com
-VITE_COGNITO_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
+VITE_COGNITO_DOMAIN=us-east-1gpg9hqgjp.auth.us-east-1.amazoncognito.com
+VITE_COGNITO_CLIENT_ID=6e10hnmqf023ioa06qo72nejbd
 VITE_COGNITO_REDIRECT_URI=http://localhost:5173/callback
 VITE_COGNITO_REGION=us-east-1
 ```
 
-Nunca commitear `.env`. Está en `.gitignore`.
+Nunca commitear `.env`. Esta en `.gitignore`.
 
 ## API REST
 
 Todas las rutas usan el prefijo `/api/v1`.
 
-### Públicas (sin autenticación)
+### Publicas (sin autenticacion)
 
 ```text
 GET    /api/v1/books              # Listar libros
@@ -241,7 +225,7 @@ PUT    /api/v1/authors/{id}       # Actualizar autor
 DELETE /api/v1/authors/{id}       # Eliminar autor
 ```
 
-### Autenticación
+### Autenticacion
 
 ```text
 GET    /api/v1/auth/me            # Usuario autenticado (requiere token)
@@ -249,4 +233,4 @@ GET    /api/v1/auth/me            # Usuario autenticado (requiere token)
 
 ## Licencia
 
-Proyecto desarrollado con fines académicos y de demostración.
+Proyecto desarrollado con fines academicos y de demostracion.

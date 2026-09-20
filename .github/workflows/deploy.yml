@@ -105,7 +105,10 @@ jobs:
         working-directory: infra
         run: |
           terraform apply -auto-approve \
-            -var="ssh_public_key=${{ steps.ssh.outputs.public_key }}"
+            -var="ssh_public_key=${{ steps.ssh.outputs.public_key }}" \
+            -var="existing_cognito_user_pool_id=${{ secrets.COGNITO_USER_POOL_ID }}" \
+            -var="existing_cognito_app_client_id=${{ secrets.COGNITO_APP_CLIENT_ID }}" \
+            -var="existing_cognito_domain=${{ secrets.COGNITO_DOMAIN }}"
           echo "public_ip=$(terraform output -raw public_ip)" >> $GITHUB_OUTPUT
           echo "instance_id=$(terraform output -raw instance_id)" >> $GITHUB_OUTPUT
           echo "cognito_user_pool_id=$(terraform output -raw cognito_user_pool_id)" >> $GITHUB_OUTPUT
@@ -118,7 +121,10 @@ jobs:
         working-directory: infra
         run: |
           terraform destroy -auto-approve \
-            -var="ssh_public_key=${{ steps.ssh.outputs.public_key }}"
+            -var="ssh_public_key=${{ steps.ssh.outputs.public_key }}" \
+            -var="existing_cognito_user_pool_id=${{ secrets.COGNITO_USER_POOL_ID }}" \
+            -var="existing_cognito_app_client_id=${{ secrets.COGNITO_APP_CLIENT_ID }}" \
+            -var="existing_cognito_domain=${{ secrets.COGNITO_DOMAIN }}"
 
   deploy:
     name: Desplegar Aplicación
@@ -172,6 +178,7 @@ jobs:
               'VITE_API_URL=http://${{ needs.infrastructure.outputs.instance_ip }}/api/v1' \
               'VITE_COGNITO_DOMAIN=${{ needs.infrastructure.outputs.cognito_domain }}' \
               'VITE_COGNITO_CLIENT_ID=${{ needs.infrastructure.outputs.cognito_app_client_id }}' \
+              'VITE_COGNITO_REDIRECT_URI=https://d84l1y8p4kdic.cloudfront.net/callback' \
               'VITE_COGNITO_REGION=${{ env.AWS_REGION }}' \
               > .env"
 

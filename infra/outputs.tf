@@ -20,17 +20,17 @@ output "ssh_command" {
 
 output "cognito_user_pool_id" {
   description = "Cognito User Pool ID"
-  value       = var.enable_cognito ? aws_cognito_user_pool.main[0].id : "not-created"
+  value       = var.enable_cognito ? aws_cognito_user_pool.main[0].id : var.existing_cognito_user_pool_id
 }
 
 output "cognito_app_client_id" {
   description = "Cognito App Client ID"
-  value       = var.enable_cognito ? aws_cognito_user_pool_client.main[0].id : "not-created"
+  value       = var.enable_cognito ? aws_cognito_user_pool_client.main[0].id : var.existing_cognito_app_client_id
 }
 
 output "cognito_domain" {
   description = "Cognito hosted UI domain"
-  value       = var.enable_cognito ? "${aws_cognito_user_pool_domain.main[0].domain}.auth.${var.aws_region}.amazoncognito.com" : "not-created"
+  value       = var.enable_cognito ? "${aws_cognito_user_pool_domain.main[0].domain}.auth.${var.aws_region}.amazoncognito.com" : "${var.existing_cognito_domain}.auth.${var.aws_region}.amazoncognito.com"
 }
 
 output "api_gateway_url" {
