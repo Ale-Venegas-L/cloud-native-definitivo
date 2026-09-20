@@ -123,7 +123,7 @@ jobs:
 
       - name: Copiar archivos a EC2
         run: |
-          scp -o StrictHostKeyChecking=no \
+          scp -o StrictHostKeyChecking=no -r \
             -i ~/.ssh/${{ env.PROJECT_NAME }}-key.pem \
             docker-compose.prod.yml backend/ frontend/ \
             ec2-user@${{ needs.infrastructure.outputs.instance_ip }}:/app/
