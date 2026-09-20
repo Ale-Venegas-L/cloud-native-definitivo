@@ -33,3 +33,6 @@ Thumbs.db
 .terraform.lock.hcl
 terraform.tfvars
 *.tfvars
+*.tfstate.backup
+terraform.tfstate
+*.tfstate*
