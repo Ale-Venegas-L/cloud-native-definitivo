@@ -3,6 +3,8 @@ name: Desplegar en EC2
 on:
   push:
     branches: [aws]
+  pull_request:
+    branches: [aws]
   workflow_dispatch:
     inputs:
       action:
