@@ -184,15 +184,24 @@ jobs:
 
       - name: Desplegar con Docker Compose
         run: |
+          VITE_API_URL="http://${{ needs.infrastructure.outputs.instance_ip }}/api/v1"
+          VITE_COGNITO_DOMAIN="${{ needs.infrastructure.outputs.cognito_domain }}"
+          VITE_COGNITO_CLIENT_ID="${{ needs.infrastructure.outputs.cognito_app_client_id }}"
+          VITE_COGNITO_REDIRECT_URI="https://d84l1y8p4kdic.cloudfront.net/callback"
+          VITE_COGNITO_REGION="${{ env.AWS_REGION }}"
+
           ssh -o StrictHostKeyChecking=no \
             -i ~/.ssh/${{ env.PROJECT_NAME }}-key.pem \
-            ec2-user@${{ needs.infrastructure.outputs.instance_ip }} << 'DEPLOYEOF'
-            cd /app
-            set -a && source .env && set +a
-            docker compose -f docker-compose.prod.yml down
-            docker compose -f docker-compose.prod.yml build --no-cache
-            docker compose -f docker-compose.prod.yml up -d
-          DEPLOYEOF
+            ec2-user@${{ needs.infrastructure.outputs.instance_ip }} \
+            "cd /app && \
+             VITE_API_URL='$VITE_API_URL' \
+             VITE_COGNITO_DOMAIN='$VITE_COGNITO_DOMAIN' \
+             VITE_COGNITO_CLIENT_ID='$VITE_COGNITO_CLIENT_ID' \
+             VITE_COGNITO_REDIRECT_URI='$VITE_COGNITO_REDIRECT_URI' \
+             VITE_COGNITO_REGION='$VITE_COGNITO_REGION' \
+             docker compose -f docker-compose.prod.yml down && \
+             docker compose -f docker-compose.prod.yml build --no-cache && \
+             docker compose -f docker-compose.prod.yml up -d"
 
       - name: Verificación de salud
         run: |
