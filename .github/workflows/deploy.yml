@@ -188,6 +188,7 @@ jobs:
             -i ~/.ssh/${{ env.PROJECT_NAME }}-key.pem \
             ec2-user@${{ needs.infrastructure.outputs.instance_ip }} << 'DEPLOYEOF'
             cd /app
+            set -a && source .env && set +a
             docker compose -f docker-compose.prod.yml down
             docker compose -f docker-compose.prod.yml build --no-cache
             docker compose -f docker-compose.prod.yml up -d
