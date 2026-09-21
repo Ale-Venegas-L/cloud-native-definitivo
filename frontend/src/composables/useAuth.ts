@@ -93,7 +93,7 @@ export function initializeAuth(): Promise<void> {
         } else {
           state.user = user
           state.accessToken = accessToken
-          state.isAdmin = user['custom:admin'] === true
+          state.isAdmin = user['custom:admin'] === true || user['custom:admin'] === 'true'
         }
       } catch {
         clearTokens()
@@ -143,9 +143,8 @@ export async function handleCallback(code: string, stateParam: string): Promise<
     const user = decodeAccessToken(tokens.access_token)
     state.user = user
     state.accessToken = tokens.access_token
-    state.isAdmin = user['custom:admin'] === true
+    state.isAdmin = user['custom:admin'] === true || user['custom:admin'] === 'true'
 
-    clearTokens()
     return true
   } catch (error) {
     state.error = error instanceof Error ? error.message : 'Login failed'

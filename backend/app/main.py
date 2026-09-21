@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.core.database import close_database, get_database, is_mock
+from app.core.database import close_database, get_database, get_client, is_mock
 from app.modules.auth.router import router as auth_router
 from app.modules.authors.router import router as authors_router
 from app.modules.books.router import router as books_router
@@ -40,4 +40,13 @@ app.include_router(auth_router, prefix=settings.API_V1_PREFIX)
 
 @app.get(f"{settings.API_V1_PREFIX}/health", tags=["health"])
 async def health():
-    return {"status": "ok", "mock_db": is_mock()}
+    mongo_ok = False
+    if not is_mock():
+        try:
+            client = get_client()
+            if client:
+                client.admin.command("ping")
+                mongo_ok = True
+        except Exception:
+            pass
+    return {"status": "ok", "mock_db": is_mock(), "mongo": mongo_ok}

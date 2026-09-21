@@ -47,6 +47,6 @@ def verify_token(id_token: str) -> AuthenticatedUser:
         email=claims.get("email"),
         name=claims.get("name"),
         picture=claims.get("picture"),
-        admin=claims.get("custom:admin") is True,
+        admin=str(claims.get("custom:admin", "")).lower() == "true",
         permissions=permissions,
     )

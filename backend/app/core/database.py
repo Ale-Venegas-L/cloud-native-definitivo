@@ -27,6 +27,10 @@ def is_mock():
     return _use_mock
 
 
+def get_client():
+    return client
+
+
 def close_database():
     global client, db
     if client:
