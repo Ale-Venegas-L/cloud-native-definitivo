@@ -97,30 +97,17 @@ jobs:
           (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'deploy')
         working-directory: infra
         run: |
-          KEY_ID=$(aws ec2 describe-key-pairs \
-            --filters "Name=key-name,Values=${{ env.PROJECT_NAME }}-key" \
-            --query "KeyPairs[0].KeyPairId" --output text 2>/dev/null) || true
-          if [ -n "$KEY_ID" ] && [ "$KEY_ID" != "None" ]; then
-            echo "Importando key pair"
-            terraform import aws_key_pair.deployer "${{ env.PROJECT_NAME }}-key" 2>/dev/null || true
-          fi
-
-          SG_ID=$(aws ec2 describe-security-groups \
-            --filters "Name=group-name,Values=${{ env.PROJECT_NAME }}-sg" \
-            --query "SecurityGroups[0].GroupId" --output text 2>/dev/null) || true
-          if [ -n "$SG_ID" ] && [ "$SG_ID" != "None" ]; then
-            echo "Importando security group: $SG_ID"
-            terraform import aws_security_group.app_sg "$SG_ID" 2>/dev/null || true
-          fi
-
-          INST_ID=$(aws ec2 describe-instances \
-            --filters "Name=key-name,Values=${{ env.PROJECT_NAME }}-key" \
-              "Name=instance-state-name,Values=running,stopped,pending" \
-            --query "Reservations[0].Instances[0].InstanceId" --output text 2>/dev/null) || true
-          if [ -n "$INST_ID" ] && [ "$INST_ID" != "None" ]; then
-            echo "Importando instancia: $INST_ID"
-            terraform import aws_instance.app "$INST_ID" 2>/dev/null || true
-          fi
+          for RES in \
+            "aws_key_pair.deployer=${{ env.PROJECT_NAME }}-key" \
+            "aws_security_group.app_sg=$(aws ec2 describe-security-groups --filters 'Name=group-name,Values=${{ env.PROJECT_NAME }}-sg' --query 'SecurityGroups[0].GroupId' --output text 2>/dev/null)" \
+            "aws_instance.app=$(aws ec2 describe-instances --filters 'Name=key-name,Values=${{ env.PROJECT_NAME }}-key' 'Name=instance-state-name,Values=running,stopped,pending' --query 'Reservations[0].Instances[0].InstanceId' --output text 2>/dev/null)"; do
+            TADDR="${RES%%=*}"
+            TID="${RES#*=}"
+            if [ -n "$TID" ] && [ "$TID" != "None" ] && [ "$TID" != "" ]; then
+              echo "Importando $TADDR = $TID"
+              timeout 30 terraform import -lock=false "$TADDR" "$TID" 2>/dev/null || true
+            fi
+          done
 
       - name: Terraform Plan
         if: github.event.inputs.action == 'plan'
