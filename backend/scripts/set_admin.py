@@ -1,17 +1,38 @@
-"""Grant or revoke the Firebase admin claim for an existing user."""
+"""Grant or revoke admin access for a Cognito user via custom attributes.
+
+Usage:
+    python scripts/set_admin.py --email user@example.com
+    python scripts/set_admin.py --email user@example.com --revoke
+
+Note: Requires a Pre Token Generation Lambda to include custom:admin
+in the JWT. See docs/aws-setup.md for configuration.
+"""
 
 import argparse
+import os
 
-from firebase_admin import auth as firebase_auth
+import boto3
 
-from app.modules.auth.service import initialize_firebase
+
+def get_cognito_client():
+    return boto3.client(
+        "cognito-idp",
+        region_name=os.getenv("COGNITO_REGION", "us-east-1"),
+    )
+
+
+def get_user_pool_id() -> str:
+    pool_id = os.getenv("COGNITO_USER_POOL_ID")
+    if not pool_id:
+        raise RuntimeError("COGNITO_USER_POOL_ID environment variable not set")
+    return pool_id
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Manage the admin claim for an existing Firebase user."
+        description="Manage admin access for a Cognito user."
     )
-    parser.add_argument("--email", required=True, help="Firebase user email")
+    parser.add_argument("--email", required=True, help="Cognito user email")
     parser.add_argument(
         "--revoke",
         action="store_true",
@@ -22,18 +43,36 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    app = initialize_firebase()
-    user = firebase_auth.get_user_by_email(args.email, app=app)
-    claims = dict(user.custom_claims or {})
+    client = get_cognito_client()
+    user_pool_id = get_user_pool_id()
+
+    # Find user by email
+    response = client.admin_get_user(
+        UserPoolId=user_pool_id,
+        Username=args.email,
+    )
+
+    # Get current custom attributes
+    current_attrs = {
+        attr["Name"]: attr["Value"]
+        for attr in response.get("UserAttributes", [])
+        if attr["Name"].startswith("custom:")
+    }
 
     if args.revoke:
-        claims.pop("admin", None)
+        new_value = "false"
         action = "revoked"
     else:
-        claims["admin"] = True
+        new_value = "true"
         action = "granted"
 
-    firebase_auth.set_custom_user_claims(user.uid, claims or None, app=app)
+    client.admin_update_user_attributes(
+        UserPoolId=user_pool_id,
+        Username=args.email,
+        UserAttributes=[
+            {"Name": "custom:admin", "Value": new_value},
+        ],
+    )
     print(f"Administrator access {action} for {args.email}")
 
 

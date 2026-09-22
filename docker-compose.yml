@@ -14,6 +14,9 @@ services:
       - MONGO_URI=mongodb://mongodb:27017
       - MONGO_DATABASE=classic_library
       - FRONTEND_URL=http://localhost:5173
+      - COGNITO_REGION=${COGNITO_REGION:-us-east-1}
+      - COGNITO_USER_POOL_ID=${COGNITO_USER_POOL_ID}
+      - COGNITO_APP_CLIENT_ID=${COGNITO_APP_CLIENT_ID}
     depends_on:
       - mongodb
 
@@ -23,12 +26,10 @@ services:
       - "5173:5173"
     environment:
       - VITE_API_URL=http://localhost:8000/api/v1
-      - VITE_FIREBASE_API_KEY=${VITE_FIREBASE_API_KEY}
-      - VITE_FIREBASE_AUTH_DOMAIN=${VITE_FIREBASE_AUTH_DOMAIN:-colud-native.firebaseapp.com}
-      - VITE_FIREBASE_PROJECT_ID=${VITE_FIREBASE_PROJECT_ID:-colud-native}
-      - VITE_FIREBASE_STORAGE_BUCKET=${VITE_FIREBASE_STORAGE_BUCKET:-colud-native.firebasestorage.app}
-      - VITE_FIREBASE_MESSAGING_SENDER_ID=${VITE_FIREBASE_MESSAGING_SENDER_ID:-17691843333}
-      - VITE_FIREBASE_APP_ID=${VITE_FIREBASE_APP_ID:-1:17691843333:web:71a9e325b0288dda7e756c}
+      - VITE_COGNITO_DOMAIN=${VITE_COGNITO_DOMAIN}
+      - VITE_COGNITO_CLIENT_ID=${VITE_COGNITO_CLIENT_ID}
+      - VITE_COGNITO_REDIRECT_URI=http://localhost:5173/callback
+      - VITE_COGNITO_REGION=${VITE_COGNITO_REGION:-us-east-1}
     depends_on:
       - backend
 

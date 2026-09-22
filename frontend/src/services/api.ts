@@ -1,4 +1,4 @@
-import { getFirebaseToken } from '../composables/useAuth'
+import { getAccessToken } from '../composables/useAuth'
 
 const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
 
@@ -19,7 +19,6 @@ interface RequestOptions extends RequestInit {
 async function executeRequest<T>(
   path: string,
   options: RequestOptions,
-  forceRefresh: boolean
 ): Promise<T> {
   const headers = new Headers(options.headers)
   headers.set('Accept', 'application/json')
@@ -29,16 +28,12 @@ async function executeRequest<T>(
   }
 
   if (options.authenticated) {
-    const token = await getFirebaseToken(forceRefresh)
+    const token = getAccessToken()
     if (!token) throw new ApiError(401, 'Debes iniciar sesión')
     headers.set('Authorization', `Bearer ${token}`)
   }
 
   const response = await fetch(`${apiBase}${path}`, { ...options, headers })
-
-  if (response.status === 401 && options.authenticated && !forceRefresh) {
-    return executeRequest<T>(path, options, true)
-  }
 
   if (!response.ok) {
     const payload = await response.json().catch(() => null) as { detail?: string } | null
@@ -50,5 +45,5 @@ async function executeRequest<T>(
 }
 
 export function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  return executeRequest<T>(path, options, false)
+  return executeRequest<T>(path, options)
 }

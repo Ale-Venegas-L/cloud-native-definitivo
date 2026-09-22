@@ -1,42 +1,52 @@
 from functools import lru_cache
-from typing import Any
 
-import firebase_admin
-from firebase_admin import auth as firebase_auth
+import jwt
+import requests
+from jwt import PyJWKClient
 
 from app.core.config import settings
 from app.modules.auth.schemas import AuthenticatedUser
 
+JWKS_URL = (
+    f"https://cognito-idp.{settings.COGNITO_REGION}.amazonaws.com/"
+    f"{settings.COGNITO_USER_POOL_ID}/.well-known/jwks.json"
+)
+ISSUER = (
+    f"https://cognito-idp.{settings.COGNITO_REGION}.amazonaws.com/"
+    f"{settings.COGNITO_USER_POOL_ID}"
+)
+
 
 @lru_cache(maxsize=1)
-def initialize_firebase() -> firebase_admin.App:
-    """Initialize the Admin SDK once using workload credentials when available."""
-    try:
-        return firebase_admin.get_app()
-    except ValueError:
-        return firebase_admin.initialize_app(options={"projectId": settings.FIREBASE_PROJECT_ID})
+def _get_jwk_client() -> PyJWKClient:
+    return PyJWKClient(JWKS_URL)
 
 
 def verify_token(id_token: str) -> AuthenticatedUser:
-    if id_token.count(".") != 2:
-        raise ValueError("Malformed Firebase ID token")
+    try:
+        signing_key = _get_jwk_client().get_signing_key_from_jwt(id_token)
+        claims = jwt.decode(
+            id_token,
+            signing_key.key,
+            algorithms=["RS256"],
+            issuer=ISSUER,
+            audience=settings.COGNITO_APP_CLIENT_ID,
+            options={"require": ["exp", "iss", "aud", "sub"]},
+        )
+    except jwt.ExpiredSignatureError as exc:
+        raise ValueError("Token expired") from exc
+    except (jwt.InvalidTokenError, jwt.InvalidAudienceError, jwt.InvalidIssuerError) as exc:
+        raise ValueError(f"Invalid token: {exc}") from exc
 
-    app = initialize_firebase()
-    claims: dict[str, Any] = firebase_auth.verify_id_token(
-        id_token,
-        app=app,
-        check_revoked=settings.FIREBASE_CHECK_REVOKED,
-    )
-
-    permissions = claims.get("permissions", [])
-    if not isinstance(permissions, list):
-        permissions = []
+    permissions: list[str] = claims.get("custom:permissions", [])
+    if isinstance(permissions, str):
+        permissions = [p.strip() for p in permissions.split(",") if p.strip()]
 
     return AuthenticatedUser(
-        uid=claims["uid"],
+        uid=claims["sub"],
         email=claims.get("email"),
         name=claims.get("name"),
         picture=claims.get("picture"),
-        admin=claims.get("admin") is True,
-        permissions=[str(permission) for permission in permissions],
+        admin=str(claims.get("custom:admin", "")).lower() == "true",
+        permissions=permissions,
     )

@@ -7,7 +7,7 @@ const isScrollable = ref(false)
 const isScrolling = ref(false)
 let frameId: number | null = null
 let resizeObserver: ResizeObserver | null = null
-let hideTimer: ReturnType<typeof window.setTimeout> | null = null
+  let hideTimer: number | null = null
 
 const percentage = computed(() => Math.round(progress.value * 100))
 const isVisible = computed(() => isScrollable.value && isScrolling.value && progress.value > 0.018 && progress.value < 0.982)

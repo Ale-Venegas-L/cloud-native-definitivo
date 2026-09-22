@@ -1,615 +1,192 @@
-# Classic Library MVP
+# Classic Library — Frontend
 
-Biblioteca web de literatura clásica desarrollada como MVP Full Stack.
+Aplicación Vue 3 que consume la API REST de Classic Library. Permite navegar el catálogo público de literatura clásica y, para administradores autenticados, gestionar libros y autores mediante CRUD.
 
-El sistema permite consultar obras clásicas organizadas por autor, país y año de publicación, además de proporcionar una interfaz administrativa para gestionar libros y autores mediante operaciones CRUD.
+## Stack
 
-## Objetivo
+| Herramienta | Versión |
+|---|---|
+| Vue | 3.5 |
+| TypeScript | 6.0 |
+| Vite | 8.2 |
+| Tailwind CSS | 4.3 |
+| Vue Router | 5.2 |
+| GSAP | 3.15 |
+| Vitest | 3.0 |
 
-Construir un MVP Full Stack que permita demostrar:
-
-* Separación entre frontend, backend y persistencia.
-* Comunicación mediante API REST.
-* Intercambio de información en formato JSON.
-* Operaciones CRUD.
-* Persistencia de datos con MongoDB.
-* Comunicación entre frontend y backend.
-* Configuración de CORS.
-* Preparación para una futura migración hacia AWS.
-
-## Funcionalidades
-
-### Vista pública
-
-* Catálogo de libros.
-* Visualización de portada.
-* Búsqueda por título.
-* Filtro por autor.
-* Filtro por país.
-* Filtro por año.
-* Filtro por género.
-* Información del libro.
-* Modal reutilizable para visualizar información del autor.
-* Biografía del autor.
-* Listado de obras asociadas al autor.
-
-### Vista administrativa
-
-* Dashboard.
-* Listado de libros.
-* Crear libro.
-* Editar libro.
-* Eliminar libro.
-* Listado de autores.
-* Crear autor.
-* Editar autor.
-* Eliminar autor.
-
-## Arquitectura
-
-El sistema utiliza una arquitectura monolítica modular.
+## Estructura
 
 ```text
-Frontend
-   |
-   | HTTP / JSON
-   v
-FastAPI REST API
-   |
-   v
-MongoDB
-```
-
-La aplicación se encuentra dividida en módulos internos independientes para mantener organizada la lógica del sistema.
-
-```text
-Backend
-├── Books
-└── Authors
-```
-
-## Stack tecnológico
-
-### Frontend
-
-* Vue 3
-* TypeScript
-* Tailwind CSS
-* Vite
-* GSAP
-* Node.js como entorno de desarrollo
-
-### Backend
-
-* Python
-* FastAPI
-* Pydantic
-* PyMongo
-
-### Persistencia
-
-* MongoDB
-
-### Infraestructura
-
-* Docker
-* Docker Compose
-
-### Herramientas
-
-* Git
-* GitHub
-* Swagger
-* Postman / Thunder Client
-* Visual Studio Code
-
-## Estructura del proyecto
-
-```text
-classic-library/
+src/
+├── main.ts                          # Punto de entrada
+├── App.vue                          # Raíz del componente
+├── style.css                        # Estilos globales (Tailwind)
 │
-├── backend/
-│   ├── app/
-│   │   ├── main.py
-│   │   │
-│   │   ├── core/
-│   │   │   ├── config.py
-│   │   │   └── database.py
-│   │   │
-│   │   ├── modules/
-│   │   │   ├── books/
-│   │   │   │   ├── router.py
-│   │   │   │   ├── schemas.py
-│   │   │   │   ├── service.py
-│   │   │   │   └── repository.py
-│   │   │   │
-│   │   │   └── authors/
-│   │   │       ├── router.py
-│   │   │       ├── schemas.py
-│   │   │       ├── service.py
-│   │   │       └── repository.py
-│   │   │
-│   │   └── shared/
-│   │
-│   ├── tests/
-│   ├── requirements.txt
-│   └── Dockerfile
+├── lib/
+│   └── cognito.ts                   # Configuración Cognito, PKCE, token exchange
 │
-├── frontend/
-│   ├── src/
-│   │   ├── App.vue
-│   │   ├── main.ts
-│   │   ├── style.css
-│   │   │
-│   │   ├── composables/
-│   │   │   └── useScrollReveal.ts
-│   │   │
-│   │   ├── router/
-│   │   │   └── index.ts
-│   │   │
-│   │   ├── assets/
-│   │   │
-│   │   └── components/
-│   │       ├── composables/
-│   │       │   ├── modal-author.vue
-│   │       │   └── modal-book.vue
-│   │       │
-│   │       ├── pages/
-│   │       │   ├── public/
-│   │       │   │   ├── home.vue
-│   │       │   │   └── books.vue
-│   │       │   │
-│   │       │   └── admin/
-│   │       │       ├── panel.vue
-│   │       │       └── stock.vue
-│   │       │
-│   │       ├── UI/
-│   │       │   ├── BaseBadge.vue
-│   │       │   ├── BaseButton.vue
-│   │       │   ├── BaseCard.vue
-│   │       │   ├── BaseInput.vue
-│   │       │   ├── BaseModal.vue
-│   │       │   ├── navbar.vue
-│   │       │   ├── sidebar.vue
-│   │       │   └── footer.vue
-│   │       │
-│   │       └── views/
-│   │           ├── public.vue
-│   │           └── admin.vue
-│   │
-│   ├── index.html
-│   ├── package.json
-│   ├── vite.config.ts
-│   ├── tsconfig.json
-│   ├── tsconfig.app.json
-│   ├── tsconfig.node.json
-│   └── Dockerfile
+├── composables/
+│   ├── useAuth.ts                   # Estado de autenticación, login/logout
+│   ├── useTheme.ts                  # Control de tema claro/oscuro
+│   └── useScrollReveal.ts           # Animaciones de scroll con GSAP
 │
-├── docker-compose.yml
-├── .env.example
-├── .gitignore
-└── README.md
+├── services/
+│   └── api.ts                       # Cliente HTTP con inyección de token
+│
+├── types/
+│   └── domain.ts                    # Interfaces Author, Book, payloads
+│
+├── data/
+│   └── editions.ts                  # Datos estáticos de ediciones
+│
+├── router/
+│   ├── index.ts                     # Definición de rutas y guards
+│   └── __tests__/
+│       └── router.test.ts
+│
+├── assets/                          # Imágenes y recursos estáticos
+│
+└── components/
+    ├── views/
+    │   ├── public.vue               # Layout de rutas públicas
+    │   └── admin.vue                # Layout de rutas administrativas
+    │
+    ├── pages/
+    │   ├── public/
+    │   │   ├── home.vue             # Hero y portada principal
+    │   │   ├── books.vue            # Catálogo con filtros y búsqueda
+    │   │   └── editions.vue         # Ediciones especiales
+    │   ├── auth/
+    │   │   ├── login.vue            # Inicio de sesión (redirige a Cognito)
+    │   │   ├── callback.vue         # Callback post-autenticación
+    │   │   └── unauthorized.vue     # Acceso denegado
+    │   ├── admin/
+    │   │   ├── panel.vue            # Dashboard administrativo
+    │   │   └── stock.vue            # CRUD de libros y autores
+    │   └── __tests__/
+    │       ├── books.test.ts
+    │       └── home.test.ts
+    │
+    ├── composables/
+    │   ├── modal-author.vue         # Modal de información del autor
+    │   └── modal-book.vue           # Modal de información del libro
+    │
+    └── UI/
+        ├── BaseBadge.vue
+        ├── BaseButton.vue
+        ├── BaseCard.vue
+        ├── BaseInput.vue
+        ├── BaseModal.vue
+        ├── BookArtwork.vue
+        ├── BookCover.vue
+        ├── ContentState.vue
+        ├── EditorialCover.vue
+        ├── ScrollBookmark.vue
+        ├── ThemeToggle.vue
+        ├── navbar.vue
+        ├── sidebar.vue
+        ├── footer.vue
+        └── __tests__/
+            ├── BaseBadge.test.ts
+            ├── BaseButton.test.ts
+            ├── BaseCard.test.ts
+            ├── BaseInput.test.ts
+            └── BaseModal.test.ts
 ```
 
-## Modelo de datos
+## Autenticación
 
-### Author
+El frontend utiliza **AWS Cognito** con flujo **OAuth 2.0 Authorization Code + PKCE**.
 
-```json
-{
-  "_id": "ObjectId",
-  "name": "Miguel de Cervantes",
-  "country": "España",
-  "birth_year": 1547,
-  "death_year": 1616,
-  "biography": "Novelista, poeta y dramaturgo español.",
-  "image_url": "/authors/cervantes.webp"
-}
-```
-
-### Book
-
-```json
-{
-  "_id": "ObjectId",
-  "title": "Don Quijote de la Mancha",
-  "author_id": "ObjectId",
-  "country": "España",
-  "publication_year": 1605,
-  "genre": "Novela",
-  "description": "Obra clásica de la literatura española.",
-  "cover_url": "/covers/don-quijote.webp"
-}
-```
-
-## API REST
-
-URL local:
+### Flujo
 
 ```text
-http://localhost:8000/api
+1. Usuario clickea "Iniciar sesión"
+2. Frontend genera code_verifier y code_challenge (S256)
+3. Redirect a Cognito Hosted UI → Google Sign-In
+4. Cognito redirige de vuelta con ?code=xxx&state=yyy
+5. Frontend intercambia code por tokens (POST /oauth2/token)
+6. Access token se almacena en sessionStorage
+7. Custom claims (admin, permissions) se leen del JWT
+8. Si es admin → /admin, si no → /unauthorized
 ```
 
-### Books
+### Capa de API (`services/api.ts`)
 
-```text
-GET    /api/books
-GET    /api/books/{id}
-POST   /api/books
-PUT    /api/books/{id}
-DELETE /api/books/{id}
-```
+- Todas las llamadas al backend pasan por `apiRequest<T>(path, options)`.
+- Cuando `options.authenticated` es `true`, se obtiene el access token de sessionStorage y se envía como `Authorization: Bearer <token>`.
 
-### Authors
+### Route guards (`router/index.ts`)
 
-```text
-GET    /api/authors
-GET    /api/authors/{id}
-POST   /api/authors
-PUT    /api/authors/{id}
-DELETE /api/authors/{id}
-```
+- Las rutas con `meta.requiresAdmin` verifican que el usuario esté autenticado y tenga `custom:admin === true`.
+- Si no está autenticado → redirige a `/login`.
+- Si no es admin → redirige a `/unauthorized`.
 
-### Libros de un autor
+## Rutas
 
-```text
-GET /api/authors/{id}/books
-```
-
-## Instalación
-
-### Requisitos
-
-Tener instalado:
-
-```text
-Git
-Python
-Node.js
-Docker Desktop
-```
-
-Comprobar instalaciones:
-
-```bash
-git --version
-python --version
-node --version
-npm --version
-docker --version
-docker compose version
-```
-
-## Clonar repositorio
-
-```bash
-git clone URL_DEL_REPOSITORIO
-cd classic-library
-```
-
-## Backend
-
-Entrar al backend:
-
-```bash
-cd backend
-```
-
-Crear entorno virtual:
-
-```bash
-python -m venv .venv
-```
-
-Windows:
-
-```bash
-.venv\Scripts\activate
-```
-
-Linux/macOS:
-
-```bash
-source .venv/bin/activate
-```
-
-Instalar dependencias:
-
-```bash
-pip install -r requirements.txt
-```
-
-Ejecutar:
-
-```bash
-fastapi dev app/main.py
-```
-
-Backend:
-
-```text
-http://localhost:8000
-```
-
-Swagger:
-
-```text
-http://localhost:8000/docs
-```
-
-## Frontend
-
-Entrar:
-
-```bash
-cd frontend
-```
-
-Instalar dependencias:
-
-```bash
-npm install
-```
-
-Ejecutar:
-
-```bash
-npm run dev
-```
-
-Frontend:
-
-```text
-http://localhost:5173
-```
+| Ruta | Componente | Acceso |
+|---|---|---|
+| `/` | `home.vue` | Público |
+| `/books` | `books.vue` | Público |
+| `/editions` | `editions.vue` | Público |
+| `/login` | `login.vue` | Público |
+| `/callback` | `callback.vue` | Público |
+| `/unauthorized` | `unauthorized.vue` | Público |
+| `/admin` | `panel.vue` | Admin |
+| `/admin/stock` | `stock.vue` | Admin |
 
 ## Variables de entorno
 
-Backend:
-
 ```env
-APP_NAME=Classic Library API
-APP_ENV=development
-
-MONGO_URI=mongodb://mongodb:27017
-MONGO_DATABASE=classic_library
-
-FRONTEND_URL=http://localhost:5173
+VITE_API_URL=http://localhost:8000/api/v1
+VITE_COGNITO_DOMAIN=classic-library.auth.us-east-1.amazoncognito.com
+VITE_COGNITO_CLIENT_ID=your-app-client-id
+VITE_COGNITO_REDIRECT_URI=http://localhost:5173/callback
+VITE_COGNITO_REGION=us-east-1
 ```
 
-Frontend:
+Copiar `.env.example` y completar los valores reales de AWS Cognito. Nunca commitear `.env`.
 
-```env
-VITE_API_URL=http://localhost:8000/api
+## Instalación
+
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
-No se deben almacenar credenciales reales en Git.
+El frontend se ejecuta en `http://localhost:5173`.
 
-Agregar `.env` a `.gitignore`.
+## Scripts
+
+| Comando | Descripción |
+|---|---|
+| `npm run dev` | Servidor de desarrollo Vite |
+| `npm run build` | Build de producción (vue-tsc + vite build) |
+| `npm run preview` | Vista previa del build |
+| `npm run test` | Ejecutar tests (Vitest) |
+| `npm run test:watch` | Tests en modo watch |
+| `npm run test:coverage` | Tests con cobertura |
+| `npm run lint` | Linting con ESLint |
+| `npm run lint:fix` | Linting con auto-fix |
+| `npm run format` | Formatear con Prettier |
+
+## Tests
+
+Tests unitarios y de componente con **Vitest** + **Vue Test Utils**:
+
+- `components/__tests__/` — Tests de componentes UI (BaseBadge, BaseButton, BaseCard, BaseInput, BaseModal)
+- `pages/__tests__/` — Tests de páginas (books, home)
+- `router/__tests__/` — Tests de enrutamiento
+
+```bash
+npm run test
+```
 
 ## Docker
 
-Levantar toda la aplicación:
-
 ```bash
-docker compose up --build
+docker compose up --build frontend
 ```
 
-Ejecutar en segundo plano:
-
-```bash
-docker compose up -d
-```
-
-Detener:
-
-```bash
-docker compose down
-```
-
-Detener y eliminar volumen de datos:
-
-```bash
-docker compose down -v
-```
-
-## Servicios locales
-
-| Servicio | URL                        |
-| -------- | -------------------------- |
-| Frontend | http://localhost:5173      |
-| Backend  | http://localhost:8000      |
-| Swagger  | http://localhost:8000/docs |
-| MongoDB  | mongodb://localhost:27017  |
-
-## CORS
-
-Durante el desarrollo se permite el frontend local:
-
-```text
-http://localhost:5173
-```
-
-El backend se ejecuta en:
-
-```text
-http://localhost:8000
-```
-
-La API deberá admitir:
-
-```text
-GET
-POST
-PUT
-DELETE
-OPTIONS
-```
-
-Headers principales:
-
-```text
-Content-Type
-Authorization
-```
-
-## Pruebas
-
-Antes de integrar completamente el frontend deben validarse los endpoints utilizando Swagger, Postman o Thunder Client.
-
-Pruebas mínimas:
-
-* GET de todos los libros.
-* GET de un libro.
-* POST de un libro.
-* PUT de un libro.
-* DELETE de un libro.
-* GET de autores.
-* GET de libros asociados a un autor.
-
-## Flujo completo esperado
-
-```text
-Usuario
-   ↓
-Frontend (Vue 3)
-   ↓
-HTTP / JSON
-   ↓
-FastAPI
-   ↓
-Repository
-   ↓
-MongoDB
-   ↓
-FastAPI
-   ↓
-JSON
-   ↓
-Frontend (Vue 3)
-```
-
-## Roadmap
-
-### Fase 0
-
-Configuración inicial.
-
-* Git.
-* FastAPI.
-* Vue 3 + Vite.
-* Tailwind CSS.
-* MongoDB.
-* Docker.
-
-### Fase 1
-
-Persistencia.
-
-* Conexión MongoDB.
-* Colección Authors.
-* Colección Books.
-* Datos iniciales.
-
-### Fase 2
-
-CRUD Books.
-
-* GET.
-* GET ID.
-* POST.
-* PUT.
-* DELETE.
-
-### Fase 3
-
-CRUD Authors.
-
-* GET.
-* GET ID.
-* POST.
-* PUT.
-* DELETE.
-* Obras del autor.
-
-### Fase 4
-
-Vista pública.
-
-* Catálogo.
-* Cards.
-* Filtros.
-* Buscador.
-
-### Fase 5
-
-Modal de autor.
-
-* Biografía.
-* Información personal.
-* Obras asociadas.
-
-### Fase 6
-
-Vista administrativa.
-
-* Dashboard.
-* Gestión de libros.
-* Gestión de autores.
-
-### Fase 7
-
-Integración.
-
-* Frontend → API.
-* API → MongoDB.
-* CORS.
-* Manejo de errores.
-
-### Fase 8
-
-Pruebas.
-
-* Swagger.
-* Postman.
-* CRUD completo.
-* Prueba extremo a extremo.
-
-### Fase 9
-
-Preparación AWS.
-
-La arquitectura podrá evolucionar posteriormente hacia:
-
-```text
-Frontend publicado
-       ↓
-Amazon API Gateway
-       ↓
-AWS Lambda
-       ↓
-Amazon DynamoDB
-```
-
-El contrato REST deberá mantenerse en lo posible para minimizar cambios en el frontend.
-
-## Estado del proyecto
-
-```text
-[x] Configuración
-[x] MongoDB
-[x] API Books
-[x] API Authors
-[x] Catálogo público
-[x] Modal Authors
-[x] Admin
-[x] CRUD completo
-[x] CORS
-[x] Docker
-[ ] Testing
-[x] Documentación
-```
-
-## Licencia
-
-Proyecto desarrollado con fines académicos y de demostración.
+El servicio frontend expone el puerto 5173 y depende del servicio backend.
